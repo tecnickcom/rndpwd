@@ -1,0 +1,5 @@
+{
+    "numPasswords": 10,
+    "passwordLength": 16,
+    "charset":"!#$%&()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_abcdefghijklmnopqrstuvwxyz{|}~"
+}

@@ -1,0 +1,27 @@
+.\" Manpage for rndpwd.
+.TH RNDPWD "1" "2015" "rndpwd" "User Commands"
+.SH NAME
+rndpwd \- random password generator
+.SH DESCRIPTION
+rndpwd is a command\-line tool to generate random passwords
+.SS "Usage:"
+.IP
+rndpwd [flags]
+rndpwd [command]
+.SS "Available Commands:"
+.TP
+version
+print this program version
+.SS "Flags:"
+.HP
+\fB\-c\fR, \fB\-\-charset=\fR"!#$%&()*+,\-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_abcdefghijklmnopqrstuvwxyz{|}~": String of valid characters for a password
+.HP
+\fB\-l\fR, \fB\-\-length\fR=\fI16\fR: Password length (number of characters)
+.HP
+\fB\-n\fR, \fB\-\-number\fR=\fI10\fR: Number of passwords to generate
+.PP
+Use "rndpwd [command] \fB\-\-help\fR" for more information about a command.
+.SH AUTHOR
+Nicola Asuni (info@tecnick.com)
+.SH COPYRIGHT
+(c) 2015 Nicola Asuni - Tecnick.com LTD
