@@ -1,3 +1,6 @@
 #!/usr/bin/make -f
+export DH_VERBOSE=1
+export DH_GOPKG := github.com/~#VENDOR#~/~#PROJECT#~
 %:
+	#dh $@ --buildsystem=golang --with=golang
 	dh $@
