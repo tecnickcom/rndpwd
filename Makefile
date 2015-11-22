@@ -104,7 +104,7 @@ all: help
 test:
 	@mkdir -p target/test
 	@mkdir -p target/report
-	GOPATH=$(GOPATH) go test -coverprofile=target/report/coverage.out -bench=. -race -v ./... | tee >(PATH=$(GOPATH)/bin:$(PATH) go-junit-report > target/test/report.xml); test $${PIPESTATUS[0]} -eq 0
+	GOPATH=$(GOPATH) go test -covermode=count -coverprofile=target/report/coverage.out -bench=. -race -v ./... | tee >(PATH=$(GOPATH)/bin:$(PATH) go-junit-report > target/test/report.xml); test $${PIPESTATUS[0]} -eq 0
 
 # Format the source code
 format:
