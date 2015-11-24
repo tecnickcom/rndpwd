@@ -1,8 +1,11 @@
 package main
 
-// Application name
-const appName = "rndpwd"
+// AppName contains this application name
+const AppName = "rndpwd"
 
-// Application version
+// AppVersion contains this application version
 // This is supposed to be automatically populated by the Makefile using the value from the VERSION file
-const AppVersion = "1.0.2"
+const AppVersion = "1.1.0"
+
+// ValidCharset is a string containing the valid characters for a password
+const ValidCharset = "!#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcdefghijklmnopqrstuvwxyz{|}~"
