@@ -19,7 +19,7 @@
 
 Command-line Random Password Generator.
 
-This is an example of GO language project using a Makefile that integrates targets for common tasks, including RPM and DEB packaging. 
+This is an example of GO language project using a Makefile that integrates targets for common QA tasks and packaging, including RPM and Debian. 
 
 ## Getting started
 
@@ -51,12 +51,12 @@ Please check all the available options using `make help`.
 ## Usage
 
 ```bash
-  rndpwd [flags]
+rndpwd [flags]
 
-where flags can be:
-  -c, --charset="!#$%&()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_abcdefghijklmnopqrstuvwxyz{|}~": String of valid characters for a password
-  -l, --length=16: Password length (number of characters)
-  -n, --number=10: Number of passwords to generate
+Flags:
+-c, --charset="!#.0123456789@ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz": Characters to use to generate a password
+-l, --length=16: Lenght of each password (number of characters or bytes)
+-q, --quantity=1: Number of passwords to generate
 ```
 
 ## Examples
@@ -65,12 +65,12 @@ Once the application has being compiled with `make build`, it can be quickly tes
 
 Generate 10 passwords with 32 characters:
 ```bash
-target/usr/bin/rndpwd --number=10 --length=32
+target/usr/bin/rndpwd --quantity=10 --length=32
 ```
 
 Generate 10 passwords with 8 characters using only numbers:
 ```bash
-target/usr/bin/rndpwd --number=10 --length=8 --charset="0123456789"
+target/usr/bin/rndpwd --quantity=10 --length=8 --charset="0123456789"
 ```
 
 ## Developer(s) Contact
