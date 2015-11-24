@@ -55,6 +55,7 @@ func TestRndpwdFixed(t *testing.T) {
 
 func getMainOutput() string {
 	old := os.Stdout // keep backup of the real stdout
+	defer func() { os.Stdout = old }()
 	r, w, _ := os.Pipe()
 	os.Stdout = w
 
@@ -71,7 +72,6 @@ func getMainOutput() string {
 
 	// back to normal state
 	w.Close()
-	os.Stdout = old // restoring the real stdout
 	out := <-outC
 
 	return out
