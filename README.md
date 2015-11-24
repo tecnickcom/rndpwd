@@ -19,7 +19,7 @@
 
 Command-line Random Password Generator.
 
-This is an example of GO language project using a Makefile that integrates targets for common tasks, including RPM and DEB packaging. 
+This is an example of GO language project using a Makefile that integrates targets for common QA tasks and packaging, including RPM and Debian. 
 
 ## Getting started
 

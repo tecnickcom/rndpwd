@@ -19,4 +19,4 @@ after_failure:
   - cat ./target/test/report.xml
 
 after_script:
-  - $HOME/gopath/bin/goveralls -covermode=count -coverprofile=target/report/coverage.out -service=travis-ci
+  - if [ "$TRAVIS_GO_VERSION" = "1.5" ]; then $HOME/gopath/bin/goveralls -covermode=count -coverprofile=target/report/coverage.out -service=travis-ci; fi;
