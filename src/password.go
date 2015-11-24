@@ -2,22 +2,19 @@ package main
 
 import (
 	"crypto/rand"
-	"log"
 	"math/big"
 )
 
-// GetNewPassword returns a random password containing "length" characters from the "charset" string
-func getNewPassword(length int, charset string, charsetLength int) string {
+// getNewPassword returns a random password containing "length" characters from the "charset" string
+// NOTE: the charsetLength must be correctly set, as there are no controls in this function to improve performances
+func getNewPassword(appParams *params) string {
 
-	password := make([]byte, length)
-	chars := []byte(charset)
-	maxValue := new(big.Int).SetInt64(int64(charsetLength))
+	password := make([]byte, appParams.length)
+	chars := []byte(appParams.charset)
+	maxValue := new(big.Int).SetInt64(int64(appParams.charsetLength))
 
-	for i := 0; i < length; i++ {
-		rnd, err := rand.Int(rand.Reader, maxValue)
-		if err != nil {
-			log.Fatal(err)
-		}
+	for i := 0; i < appParams.length; i++ {
+		rnd, _ := rand.Int(rand.Reader, maxValue)
 		password[i] = chars[rnd.Int64()]
 	}
 
