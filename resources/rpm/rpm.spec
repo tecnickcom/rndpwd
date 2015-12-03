@@ -18,7 +18,7 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-%(%{__id_u} -n)
 Provides:  %{gh_project} = %{version}
 
 %description
-Command line Random Password Generator
+Command-line Random Password Generator
 
 %build
 (cd %{_current_directory} && make build)
