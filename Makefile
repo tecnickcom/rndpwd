@@ -5,7 +5,7 @@
 # ------------------------------------------------------------------------------
 
 # List special make targets that are not associated with files
-.PHONY: help all test format fmtcheck vet lint coverage qa deps install uninstall clean nuke build rpm deb bz2
+.PHONY: help all test format fmtcheck vet lint coverage cyclo ineffassign misspell qa deps install uninstall clean nuke build rpm deb bz2
 
 # Use bash as shell (Note: Ubuntu now uses dash which doesn't support PIPESTATUS).
 SHELL=/bin/bash
@@ -128,6 +128,19 @@ lint:
 coverage:
 	GOPATH=$(GOPATH) go tool cover -html=target/report/coverage.out -o target/report/coverage.html
 
+# Report cyclomatic complexity
+cyclo:
+	@mkdir -p target/report
+	gocyclo -avg ./src | tee target/report/cyclo.txt
+
+ineffassign:
+	@mkdir -p target/report
+	ineffassign ./src | tee target/report/ineffassign.txt
+
+misspell:
+	@mkdir -p target/report
+	misspell -error ./src  | tee target/report/misspell.txt
+
 # Generate source docs
 docs:
 	@mkdir -p target/docs
@@ -136,7 +149,7 @@ docs:
 	@echo '<html><head><meta http-equiv="refresh" content="0;./127.0.0.1:6060/pkg/github.com/'${OWNER}'/'${PROJECT}'/index.html"/></head><a href="./127.0.0.1:6060/pkg/github.com/'${OWNER}'/'${PROJECT}'/index.html">'${PKGNAME}' Documentation ...</a></html>' > target/docs/index.html
 
 # Alias to run targets: fmtcheck test vet lint coverage
-qa: fmtcheck test vet lint coverage
+qa: fmtcheck test vet lint coverage cyclo ineffassign misspell
 
 # --- INSTALL ---
 
@@ -146,6 +159,9 @@ deps:
 	GOPATH=$(GOPATH) go get github.com/golang/lint/golint
 	GOPATH=$(GOPATH) go get github.com/jstemmer/go-junit-report
 	GOPATH=$(GOPATH) go get github.com/axw/gocov/gocov
+	GOPATH=$(GOPATH) go get github.com/fzipp/gocyclo
+	GOPATH=$(GOPATH) go get github.com/gordonklaus/ineffassign
+	GOPATH=$(GOPATH) go get github.com/client9/misspell/cmd/misspell
 
 # Install this application
 install: uninstall
