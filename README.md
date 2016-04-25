@@ -1,6 +1,8 @@
 # rndpwd
 *Command-line Random Password Generator*
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/tecnickcom/rndpwd)](https://goreportcard.com/report/github.com/tecnickcom/rndpwd)
+
 [![Master Branch](https://img.shields.io/badge/-master:-gray.svg)](https://github.com/tecnickcom/rndpwd/tree/master)
 [![Master Build Status](https://secure.travis-ci.org/tecnickcom/rndpwd.png?branch=master)](https://travis-ci.org/tecnickcom/rndpwd?branch=master)
 [![Master Coverage Status](https://coveralls.io/repos/tecnickcom/rndpwd/badge.svg?branch=master&service=github)](https://coveralls.io/github/tecnickcom/rndpwd?branch=master)

@@ -12,7 +12,7 @@ import (
 // params struct contains the application parameters
 type params struct {
 	quantity      int    // number of passwords to generate
-	length        int    // lenght of each password (number of characters or bytes)
+	length        int    // length of each password (number of characters or bytes)
 	charset       string // characters to use to generate a password
 	charsetLength int    // length of the character set in bytes
 }

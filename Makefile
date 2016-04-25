@@ -72,7 +72,7 @@ PATHBZ2PKG=$(CURRENTDIR)/target/BZ2
 # Display general help about this command
 help:
 	@echo ""
-	@echo "Welcome to $(PROJECT) make."
+	@echo "$(PROJECT) Makefile."
 	@echo "The following commands are available:"
 	@echo ""
 	@echo "    make qa         : Run all the tests"
@@ -92,9 +92,9 @@ help:
 	@echo "    make nuke       : Deletes any intermediate file"
 	@echo "    make install    : Install this application"
 	@echo ""
-	@echo "    make rpm         : Build an RPM package"
-	@echo "    make deb         : Build a DEB package"
-	@echo "    make bz2         : Build a tar bz2 (tbz2) compressed archive"
+	@echo "    make rpm        : Build an RPM package"
+	@echo "    make deb        : Build a DEB package"
+	@echo "    make bz2        : Build a tar bz2 (tbz2) compressed archive"
 	@echo ""
 
 # Alias for help target
@@ -189,8 +189,7 @@ nuke:
 
 # Compile the application
 build: deps
-	sed -i "s/AppVersion = \"[^\"]*\"/AppVersion = \"$(VERSION)\"/" ./src/constants.go
-	GOPATH=$(GOPATH) go build -o ./target/${BINPATH}$(PROJECT) ./src
+	GOPATH=$(GOPATH) go build -ldflags '-extldflags "-static" -s -X main.ServiceVersion=${VERSION}' -o ./target/${BINPATH}$(PROJECT) ./src
 
 # --- PACKAGING ---
 
