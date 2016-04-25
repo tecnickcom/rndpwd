@@ -21,7 +21,7 @@ func cli() *cobra.Command {
 
 	// overwrites the configuration parameters with the ones specified in the command line (if any)
 	rootCmd.Flags().IntVarP(&appParams.quantity, "quantity", "q", cfgParams.quantity, "Number of passwords to generate")
-	rootCmd.Flags().IntVarP(&appParams.length, "length", "l", cfgParams.length, "Lenght of each password (number of characters or bytes)")
+	rootCmd.Flags().IntVarP(&appParams.length, "length", "l", cfgParams.length, "Length of each password (number of characters or bytes)")
 	rootCmd.Flags().StringVarP(&appParams.charset, "charset", "c", cfgParams.charset, "Characters to use to generate a password")
 
 	rootCmd.Use = "rndpwd"

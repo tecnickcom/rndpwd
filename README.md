@@ -60,7 +60,7 @@ rndpwd [flags]
 
 Flags:
 -c, --charset="!#.0123456789@ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz": Characters to use to generate a password
--l, --length=16: Lenght of each password (number of characters or bytes)
+-l, --length=16: Length of each password (number of characters or bytes)
 -q, --quantity=1: Number of passwords to generate
 ```
 
