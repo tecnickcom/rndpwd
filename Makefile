@@ -139,17 +139,17 @@ coverage:
 # Report cyclomatic complexity
 cyclo:
 	@mkdir -p target/report
-	gocyclo -avg ./src | tee target/report/cyclo.txt
+	GOPATH=$(GOPATH) gocyclo -avg ./src | tee target/report/cyclo.txt
 
 # Detect ineffectual assignments
 ineffassign:
 	@mkdir -p target/report
-	ineffassign ./src | tee target/report/ineffassign.txt
+	GOPATH=$(GOPATH) ineffassign ./src | tee target/report/ineffassign.txt
 
 # Detect commonly misspelled words in source files
 misspell:
 	@mkdir -p target/report
-	misspell -error ./src  | tee target/report/misspell.txt
+	GOPATH=$(GOPATH) misspell -error ./src  | tee target/report/misspell.txt
 
 # Generate source docs
 docs:
