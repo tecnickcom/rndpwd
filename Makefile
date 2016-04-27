@@ -166,6 +166,7 @@ qa: fmtcheck test vet lint coverage cyclo ineffassign misspell
 # Get the dependencies
 deps:
 	GOPATH=$(GOPATH) go get ./...
+	GOPATH=$(GOPATH) go get github.com/inconshreveable/mousetrap
 	GOPATH=$(GOPATH) go get github.com/golang/lint/golint
 	GOPATH=$(GOPATH) go get github.com/jstemmer/go-junit-report
 	GOPATH=$(GOPATH) go get github.com/axw/gocov/gocov
@@ -215,7 +216,7 @@ nuke:
 
 # Compile the application
 build: deps
-	GOPATH=$(GOPATH) go build -ldflags '-extldflags "-static" -s -X main.ServiceVersion=${VERSION}' -o ./target/${BINPATH}$(PROJECT) ./src
+	GOPATH=$(GOPATH) go build -ldflags '-X main.ServiceVersion=${VERSION}' -o ./target/${BINPATH}$(PROJECT) ./src
 
 # Cross-compile the application for several platforms
 crossbuild: deps
@@ -224,7 +225,7 @@ crossbuild: deps
 		$(eval GOOS = $(word 1,$(subst /, ,$(TARGET)))) \
 		$(eval GOARCH = $(word 2,$(subst /, ,$(TARGET)))) \
 		$(shell which mkdir) -p target/$(TARGET) && \
-		GOOS=${GOOS} GOARCH=${GOARCH} GOPATH=$(GOPATH) go build -ldflags '-extldflags "-static" -s -X main.ServiceVersion=${VERSION}' -o ./target/${GOOS}/${GOARCH}/$(PROJECT) ./src \
+		GOOS=${GOOS} GOARCH=${GOARCH} GOPATH=$(GOPATH) go build -ldflags '-X main.ServiceVersion=${VERSION}' -o ./target/${GOOS}/${GOARCH}/$(PROJECT) ./src \
 		|| echo $(TARGET) >> target/ccfailures.txt ; \
 	)
 ifneq ($(strip $(cat target/ccfailures.txt)),)
@@ -268,6 +269,7 @@ ifneq ($(strip $(MANPATH)),)
 endif
 	echo "new-package-should-close-itp-bug" > $(PATHDEBPKG)/$(PKGNAME)-$(VERSION)/debian/$(PKGNAME).lintian-overrides
 	echo "hardening-no-relro $(BINPATH)$(PROJECT)" >> $(PATHDEBPKG)/$(PKGNAME)-$(VERSION)/debian/$(PKGNAME).lintian-overrides
+	echo "embedded-library $(BINPATH)$(PROJECT): libyaml" >> $(PATHDEBPKG)/$(PKGNAME)-$(VERSION)/debian/$(PKGNAME).lintian-overrides
 	cd $(PATHDEBPKG)/$(PKGNAME)-$(VERSION) && debuild -us -uc
 
 # build a compressed bz2 archive
