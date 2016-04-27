@@ -5,7 +5,7 @@
 # ------------------------------------------------------------------------------
 
 # List special make targets that are not associated with files
-.PHONY: help all test format fmtcheck vet lint coverage cyclo ineffassign misspell qa deps install uninstall clean nuke build rpm deb bz2
+.PHONY: help all test format fmtcheck vet lint coverage cyclo ineffassign misspell qa deps install uninstall clean nuke build rpm deb bz2 dbuild
 
 # Use bash as shell (Note: Ubuntu now uses dash which doesn't support PIPESTATUS).
 SHELL=/bin/bash
@@ -67,6 +67,9 @@ PATHDEBPKG=$(CURRENTDIR)/target/DEB
 # BZ2 Packaging path (where BZ2s will be stored)
 PATHBZ2PKG=$(CURRENTDIR)/target/BZ2
 
+# Cross compilation targets
+CCTARGETS=darwin/386 darwin/amd64 freebsd/386 freebsd/amd64 freebsd/arm linux/386 linux/amd64 linux/arm openbsd/386 openbsd/amd64 windows/386 windows/amd64
+
 # --- MAKE TARGETS ---
 
 # Display general help about this command
@@ -75,26 +78,31 @@ help:
 	@echo "$(PROJECT) Makefile."
 	@echo "The following commands are available:"
 	@echo ""
-	@echo "    make qa         : Run all the tests"
-	@echo "    make test       : Run the unit tests"
+	@echo "    make qa          : Run all the tests and static analysis reports"
+	@echo "    make test        : Run the unit tests"
 	@echo ""
-	@echo "    make format     : Format the source code"
-	@echo "    make fmtcheck   : Check if the source code has been formatted"
-	@echo "    make vet        : Check for syntax errors"
-	@echo "    make lint       : Check for style errors"
-	@echo "    make coverage   : Generate the coverage report"
+	@echo "    make format      : Format the source code"
+	@echo "    make fmtcheck    : Check if the source code has been formatted"
+	@echo "    make vet         : Check for syntax errors"
+	@echo "    make lint        : Check for style errors"
+	@echo "    make coverage    : Generate the coverage report"
+	@echo "    make cyclo       : Generate the cyclomatic complexity report"
+	@echo "    make ineffassign : Detect ineffectual assignments"
+	@echo "    make misspell    : Detect commonly misspelled words in source files"
 	@echo ""
-	@echo "    make docs       : Generate source code documentation"
+	@echo "    make docs        : Generate source code documentation"
 	@echo ""
-	@echo "    make deps       : Get the dependencies"
-	@echo "    make build      : Compile the application"
-	@echo "    make clean      : Remove any build artifact"
-	@echo "    make nuke       : Deletes any intermediate file"
-	@echo "    make install    : Install this application"
+	@echo "    make deps        : Get the dependencies"
+	@echo "    make build       : Compile the application"
+	@echo "    make clean       : Remove any build artifact"
+	@echo "    make nuke        : Deletes any intermediate file"
+	@echo "    make install     : Install this application"
 	@echo ""
-	@echo "    make rpm        : Build an RPM package"
-	@echo "    make deb        : Build a DEB package"
-	@echo "    make bz2        : Build a tar bz2 (tbz2) compressed archive"
+	@echo "    make rpm         : Build an RPM package"
+	@echo "    make deb         : Build a DEB package"
+	@echo "    make bz2         : Build a tar bz2 (tbz2) compressed archive"
+	@echo ""
+	@echo "    make dbuild      : Build everything inside a Docker container"
 	@echo ""
 
 # Alias for help target
@@ -133,10 +141,12 @@ cyclo:
 	@mkdir -p target/report
 	gocyclo -avg ./src | tee target/report/cyclo.txt
 
+# Detect ineffectual assignments
 ineffassign:
 	@mkdir -p target/report
 	ineffassign ./src | tee target/report/ineffassign.txt
 
+# Detect commonly misspelled words in source files
 misspell:
 	@mkdir -p target/report
 	misspell -error ./src  | tee target/report/misspell.txt
@@ -207,6 +217,21 @@ nuke:
 build: deps
 	GOPATH=$(GOPATH) go build -ldflags '-extldflags "-static" -s -X main.ServiceVersion=${VERSION}' -o ./target/${BINPATH}$(PROJECT) ./src
 
+# Cross-compile the application for several platforms
+crossbuild: deps
+	@echo "" > target/ccfailures.txt
+	$(foreach TARGET,$(CCTARGETS), \
+		$(eval GOOS = $(word 1,$(subst /, ,$(TARGET)))) \
+		$(eval GOARCH = $(word 2,$(subst /, ,$(TARGET)))) \
+		$(shell which mkdir) -p target/$(TARGET) && \
+		GOOS=${GOOS} GOARCH=${GOARCH} GOPATH=$(GOPATH) go build -ldflags '-extldflags "-static" -s -X main.ServiceVersion=${VERSION}' -o ./target/${GOOS}/${GOARCH}/$(PROJECT) ./src \
+		|| echo $(TARGET) >> target/ccfailures.txt ; \
+	)
+ifneq ($(strip $(cat target/ccfailures.txt)),)
+	echo target/ccfailures.txt
+	exit 1
+endif
+
 # --- PACKAGING ---
 
 # Build the RPM package for RedHat-like Linux distributions
@@ -250,3 +275,8 @@ bz2: build
 	rm -rf $(PATHBZ2PKG)
 	make install DESTDIR=$(PATHBZ2PKG)
 	tar -jcvf $(PATHBZ2PKG)/$(PKGNAME)-$(VERSION)-$(RELEASE).tbz2 -C $(PATHBZ2PKG) usr/ etc/
+
+# build everything inside a Docker container
+dbuild:
+	@mkdir -p target
+	./dockerbuild.sh
