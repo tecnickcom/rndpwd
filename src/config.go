@@ -23,11 +23,10 @@ func getConfigParams() params {
 	// name of the configuration file without extension
 	viper.SetConfigName("config")
 
-	// search paths for the configuration file ...
-	viper.AddConfigPath("../resources/etc/" + AppName + "/")
-	viper.AddConfigPath("./")
-	viper.AddConfigPath("$HOME/." + AppName + "/")
-	viper.AddConfigPath("/etc/" + AppName + "/")
+	// add configuration paths
+	for _, cpath := range ConfigPath {
+		viper.AddConfigPath(cpath)
+	}
 
 	// set default configuration values
 	viper.SetDefault("quantity", 1)
