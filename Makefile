@@ -31,6 +31,9 @@ PKGNAME=${OWNER}-${PROJECT}
 # Go lang path
 GOPATH=$(shell readlink -f $(shell pwd)/../../../../)
 
+# Add the GO binary dir in the PATH
+export PATH := ${GOPATH}/bin:$(PATH)
+
 # Path for binary files (where the executable files will be installed)
 BINPATH=usr/bin/
 
