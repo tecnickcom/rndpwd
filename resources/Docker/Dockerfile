@@ -4,7 +4,7 @@
 # for C, C++ and GO languages
 #
 # @author      Nicola Asuni <info@tecnick.com>
-# @copyright   Nicola Asuni - Tecnick.com LTD
+# @copyright   2015-2016 Nicola Asuni - Tecnick.com LTD
 # ------------------------------------------------------------------------------
 
 # ------------------------------------------------------------------------------

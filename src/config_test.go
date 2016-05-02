@@ -25,6 +25,13 @@ func TestCheckParams(t *testing.T) {
 	}
 }
 
+func TestCheckParamsErrorsServer(t *testing.T) {
+	err := checkParams(&params{server: true, httpaddr: ""})
+	if err == nil {
+		t.Error(fmt.Errorf("An error was expected because the server address is empty"))
+	}
+}
+
 func TestCheckParamsErrorsQuantity(t *testing.T) {
 	err := checkParams(&params{quantity: 0, length: 2, charset: "abc"})
 	if err == nil {

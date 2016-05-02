@@ -1,4 +1,6 @@
 {
+    "server": false,
+    "httpaddr": 8080,
     "quantity": 10,
     "length": 32,
     "charset":"!#$%&()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ^_abcdefghijklmnopqrstuvwxyz~"

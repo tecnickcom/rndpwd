@@ -1,28 +1,27 @@
 # rndpwd
-*Command-line Random Password Generator*
-
-[![Go Report Card](https://goreportcard.com/badge/github.com/tecnickcom/rndpwd)](https://goreportcard.com/report/github.com/tecnickcom/rndpwd)
+*Command-line and Web-service Random Password Generator*
 
 [![Master Branch](https://img.shields.io/badge/-master:-gray.svg)](https://github.com/tecnickcom/rndpwd/tree/master)
 [![Master Build Status](https://secure.travis-ci.org/tecnickcom/rndpwd.png?branch=master)](https://travis-ci.org/tecnickcom/rndpwd?branch=master)
 [![Master Coverage Status](https://coveralls.io/repos/tecnickcom/rndpwd/badge.svg?branch=master&service=github)](https://coveralls.io/github/tecnickcom/rndpwd?branch=master)
-*
+
 [![Develop Branch](https://img.shields.io/badge/-develop:-gray.svg)](https://github.com/tecnickcom/rndpwd/tree/develop)
 [![Develop Build Status](https://secure.travis-ci.org/tecnickcom/rndpwd.png?branch=develop)](https://travis-ci.org/tecnickcom/rndpwd?branch=develop)
 [![Develop Coverage Status](https://coveralls.io/repos/tecnickcom/rndpwd/badge.svg?branch=develop&service=github)](https://coveralls.io/github/tecnickcom/rndpwd?branch=develop)
+[![Go Report Card](https://goreportcard.com/badge/github.com/tecnickcom/rndpwd)](https://goreportcard.com/report/github.com/tecnickcom/rndpwd)
 
 [![Donate via PayPal](https://img.shields.io/badge/donate-paypal-87ceeb.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&currency_code=GBP&business=paypal@tecnick.com&item_name=donation%20for%20rndpwd%20project)
 *Please consider supporting this project by making a donation via [PayPal](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&currency_code=GBP&business=paypal@tecnick.com&item_name=donation%20for%20rndpwd%20project)*
 
 * **category**    Application
 * **author**      Nicola Asuni <info@tecnick.com>
-* **copyright**   2015-2015 Nicola Asuni - Tecnick.com LTD
+* **copyright**   2015-2016 Nicola Asuni - Tecnick.com LTD
 * **license**     MIT (see LICENSE)
 * **link**        https://github.com/tecnickcom/rndpwd
 
 ## Description
 
-Command-line Random Password Generator.
+Command-line and Web-service Random Password Generator
 
 This is an example of GO language project using a Makefile that integrates targets for common QA tasks and packaging, including RPM and Debian. 
 
@@ -59,6 +58,9 @@ Please check all the available options using `make help`.
 rndpwd [flags]
 
 Flags:
+
+-s, --server: Set this to true to start an HTTP RESTful API server
+-u, --httpaddr="8080": HTTP API address for server mode (ip:port) or just (:port)
 -c, --charset="!#.0123456789@ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz": Characters to use to generate a password
 -l, --length=16: Length of each password (number of characters or bytes)
 -q, --quantity=1: Number of passwords to generate
@@ -76,6 +78,11 @@ target/usr/bin/rndpwd --quantity=10 --length=32
 Generate 10 passwords with 8 characters using only numbers:
 ```bash
 target/usr/bin/rndpwd --quantity=10 --length=8 --charset="0123456789"
+```
+
+Start aan HTTP RESTful API server listening on port 8080
+```bash
+target/usr/bin/rndpwd --server --httpaddr=:8080
 ```
 
 ## Developer(s) Contact

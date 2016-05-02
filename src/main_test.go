@@ -32,7 +32,7 @@ func TestRndpwd(t *testing.T) {
 	os.Args = []string{"rndpwd"}
 	out := getMainOutput()
 	if len(out) != 330 {
-		t.Error(fmt.Errorf("Expected 330 characters output (10 x 33 chars)"))
+		t.Error(fmt.Errorf("Expected 330 characters output (10 x 33 chars) %v", out))
 	}
 }
 

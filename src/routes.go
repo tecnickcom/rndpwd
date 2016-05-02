@@ -1,0 +1,30 @@
+package main
+
+import "github.com/julienschmidt/httprouter"
+
+// Route contains the HTTP route description
+type Route struct {
+	Method      string            `json:"method"`      // HTTP method
+	Path        string            `json:"path"`        // URL path
+	Handle      httprouter.Handle `json:"-"`           // Handler function
+	Description string            `json:"description"` // Description
+}
+
+// Routes is a list of routes
+type Routes []Route
+
+// HTTP routes
+var routes = Routes{
+	Route{
+		"GET",
+		"/ping",
+		ping,
+		"check if this service is alive",
+	},
+	Route{
+		"GET",
+		"/password",
+		password,
+		"returns random passwords",
+	},
+}

@@ -1,5 +1,5 @@
-// Copyright (c) 2015 Nicola Asuni - Tecnick.com LTD
-// Command-line password generator
+// Copyright (c) 2015-2016 Nicola Asuni - Tecnick.com LTD
+// Command-line and Web-service Random Password Generator
 package main
 
 import (

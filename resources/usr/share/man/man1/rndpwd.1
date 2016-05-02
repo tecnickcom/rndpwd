@@ -1,9 +1,9 @@
 .\" Manpage for rndpwd.
-.TH RNDPWD "1" "2015" "rndpwd" "User Commands"
+.TH RNDPWD "1" "2015-2016" "rndpwd" "User Commands"
 .SH NAME
-rndpwd \- random password generator
+rndpwd \- Command-line and Web-service Random Password Generator
 .SH DESCRIPTION
-rndpwd is a command\-line tool to generate random passwords
+rndpwd is a command\-line and web-service tool to generate random passwords
 .SS "Usage:"
 .IP
 rndpwd [flags]
@@ -13,6 +13,10 @@ rndpwd [command]
 version
 print this program version
 .SS "Flags:"
+.HP
+\fB\-s\fR, \fB\-\-server\fR=\fI10\fR: Set this to true to start a RESTful API server mode
+.HP
+\fB\-u\fR, \fB\-\-httpaddr\fR=\fI10\fR: HTTP API address for server mode (ip:port) or just (:port)
 .HP
 \fB\-n\fR, \fB\-\-number\fR=\fI10\fR: Number of passwords to generate
 .HP
@@ -24,4 +28,4 @@ Use "rndpwd [command] \fB\-\-help\fR" for more information about a command.
 .SH AUTHOR
 Nicola Asuni (info@tecnick.com)
 .SH COPYRIGHT
-(c) 2015 Nicola Asuni - Tecnick.com LTD
+(c) 2015-2016 Nicola Asuni - Tecnick.com LTD
