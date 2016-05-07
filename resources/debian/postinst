@@ -1,0 +1,10 @@
+#!/bin/sh
+# postinst script for rndpwd
+
+set -e
+
+update-rc.d -f rndpwd defaults
+
+#DEBHELPER#
+
+exit 0

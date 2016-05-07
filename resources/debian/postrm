@@ -1,0 +1,10 @@
+#!/bin/sh
+# postrm script for rndpwd
+
+set -e
+
+update-rc.d -f rndpwd remove
+
+#DEBHELPER#
+
+exit 0
