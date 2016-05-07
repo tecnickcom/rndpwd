@@ -15,6 +15,10 @@ go:
   - 1.6
   - tip
 
+matrix:
+  allow_failures:
+    - tip
+
 before_install:
   - if [ -n "$GH_USER" ]; then git config --global github.user ${GH_USER}; fi;
   - if [ -n "$GH_TOKEN" ]; then git config --global github.token ${GH_TOKEN}; fi;
