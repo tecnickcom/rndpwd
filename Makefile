@@ -5,7 +5,7 @@
 # ------------------------------------------------------------------------------
 
 # List special make targets that are not associated with files
-.PHONY: help all test format fmtcheck vet lint coverage cyclo ineffassign misspell qa deps install uninstall clean nuke build rpm deb bz2 dbuild
+.PHONY: help all test format fmtcheck vet lint coverage cyclo ineffassign misspell qa deps install uninstall clean nuke build rpm deb bz2 docker dbuild
 
 # Use bash as shell (Note: Ubuntu now uses dash which doesn't support PIPESTATUS).
 SHELL=/bin/bash
@@ -76,6 +76,9 @@ PATHDEBPKG=$(CURRENTDIR)/target/DEB
 # BZ2 Packaging path (where BZ2s will be stored)
 PATHBZ2PKG=$(CURRENTDIR)/target/BZ2
 
+# DOCKER Packaging path (where BZ2s will be stored)
+PATHDOCKERPKG=$(CURRENTDIR)/target/DOCKER
+
 # Cross compilation targets
 CCTARGETS=darwin/386 darwin/amd64 freebsd/386 freebsd/amd64 freebsd/arm linux/386 linux/amd64 linux/arm openbsd/386 openbsd/amd64 windows/386 windows/amd64
 
@@ -110,6 +113,7 @@ help:
 	@echo "    make rpm         : Build an RPM package"
 	@echo "    make deb         : Build a DEB package"
 	@echo "    make bz2         : Build a tar bz2 (tbz2) compressed archive"
+	@echo "    make docker      : Build a docker container to run this service"
 	@echo ""
 	@echo "    make dbuild      : Build everything inside a Docker container"
 	@echo ""
@@ -296,6 +300,13 @@ bz2: build
 	rm -rf $(PATHBZ2PKG)
 	make install DESTDIR=$(PATHBZ2PKG)
 	tar -jcvf $(PATHBZ2PKG)/$(PKGNAME)-$(VERSION)-$(RELEASE).tbz2 -C $(PATHBZ2PKG) usr/ etc/
+
+# build a docker container to run this service
+docker: build
+	rm -rf $(PATHDOCKERPKG)
+	make install DESTDIR=$(PATHDOCKERPKG)
+	cp resources/DockerDeploy/Dockerfile $(PATHDOCKERPKG)/
+	docker build --no-cache --tag=${OWNER}/${PROJECT}:latest $(PATHDOCKERPKG)
 
 # build everything inside a Docker container
 dbuild:
