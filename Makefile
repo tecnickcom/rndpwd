@@ -221,7 +221,7 @@ endif
 
 # Remove all installed files (excluding configuration files)
 uninstall:
-	rm -rf $(PATHINSTBIN)
+	rm -rf $(PATHINSTBIN)$(PROJECT)
 	rm -rf $(PATHINSTDOC)
 
 # Remove any build artifact
