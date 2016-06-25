@@ -1,3 +1,3 @@
 FROM scratch
 ADD ./ /
-ENTRYPOINT ["/etc/init.d/rndpwd", "start"]
+ENTRYPOINT ["/usr/bin/rndpwd"]

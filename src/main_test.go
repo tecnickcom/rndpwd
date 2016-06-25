@@ -37,7 +37,7 @@ func TestRndpwd(t *testing.T) {
 }
 
 func TestRndpwdOne(t *testing.T) {
-	os.Args = []string{"rndpwd", "--quantity=1", "--length=64"}
+	os.Args = []string{"rndpwd", "--length=64", "--quantity=1"}
 	out := getMainOutput()
 	if len(out) != 65 {
 		t.Error(fmt.Errorf("Expected 1 64 character password + newline"))
@@ -45,7 +45,7 @@ func TestRndpwdOne(t *testing.T) {
 }
 
 func TestRndpwdFixed(t *testing.T) {
-	os.Args = []string{"rndpwd", "--quantity=1", "--length=4", "--charset=abc"}
+	os.Args = []string{"rndpwd", "--charset=abc", "--length=4", "--quantity=1"}
 	out := getMainOutput()
 	match, _ := regexp.MatchString("^[abc]{4}[\\s]*$", out)
 	if !match {

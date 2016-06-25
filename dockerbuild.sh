@@ -16,7 +16,7 @@
 # ./dockerbuild.sh
 
 # build the environment
-docker build -t tecnickcom/crossdev ./resources/Docker/
+docker build -t tecnickcom/crossdev ./resources/DockerDev/
 
 # generate a docker file on the fly
 cat > Dockerfile <<- EOM

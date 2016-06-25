@@ -2,14 +2,13 @@
 // Command-line and Web-service Random Password Generator
 package main
 
-import (
-	"log"
-)
-
 func main() {
-	rootCmd := cli()
+	rootCmd, err := cli()
+	if err != nil {
+		critLog.Fatalf("unable to start the service: %v", err)
+	}
 	// execute the root command and log errors (if any)
-	if err := rootCmd.Execute(); err != nil {
-		log.Fatal(err)
+	if err = rootCmd.Execute(); err != nil {
+		critLog.Fatalf("unable to start the service: %v", err)
 	}
 }

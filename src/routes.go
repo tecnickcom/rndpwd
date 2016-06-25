@@ -17,14 +17,14 @@ type Routes []Route
 var routes = Routes{
 	Route{
 		"GET",
-		"/ping",
-		ping,
-		"check if this service is alive",
+		"/status",
+		status,
+		"check this service status",
 	},
 	Route{
 		"GET",
 		"/password",
 		password,
-		"returns random passwords",
+		"returns random passwords; charset, length and quantity can be specified as query parameters",
 	},
 }

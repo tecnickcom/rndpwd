@@ -13,7 +13,7 @@ const (
 
 // Response data format for HTTP
 type Response struct {
-	Program string      `json:"program"` // program name
+	Service string      `json:"service"` // program name
 	Version string      `json:"version"` // program version
 	Time    time.Time   `json:"time"`    // timestamp
 	Status  string      `json:"status"`  // status code (error|fail|success)

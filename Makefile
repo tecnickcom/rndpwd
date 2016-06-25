@@ -5,7 +5,7 @@
 # ------------------------------------------------------------------------------
 
 # List special make targets that are not associated with files
-.PHONY: help all test format fmtcheck vet lint coverage cyclo ineffassign misspell qa deps install uninstall clean nuke build rpm deb bz2 docker dbuild
+.PHONY: help all test format fmtcheck vet lint coverage cyclo ineffassign misspell qa deps install uninstall clean nuke build rpm deb bz2 docker dockertest dbuild
 
 # Use bash as shell (Note: Ubuntu now uses dash which doesn't support PIPESTATUS).
 SHELL=/bin/bash
@@ -82,6 +82,9 @@ PATHDOCKERPKG=$(CURRENTDIR)/target/DOCKER
 # Cross compilation targets
 CCTARGETS=darwin/386 darwin/amd64 freebsd/386 freebsd/amd64 freebsd/arm linux/386 linux/amd64 linux/arm openbsd/386 openbsd/amd64 windows/386 windows/amd64
 
+# docker image name for consul (used during testing)
+CONSUL_DOCKER_IMAGE_NAME=consul_$(OWNER)_$(PROJECT)$(DOCKERSUFFIX)_$(VERSION)-$(RELEASE)
+
 # --- MAKE TARGETS ---
 
 # Display general help about this command
@@ -95,7 +98,7 @@ help:
 	@echo ""
 	@echo "    make format      : Format the source code"
 	@echo "    make fmtcheck    : Check if the source code has been formatted"
-	@echo "    make vet         : Check for syntax errors"
+	@echo "    make vet         : Check for suspicious constructs"
 	@echo "    make lint        : Check for style errors"
 	@echo "    make coverage    : Generate the coverage report"
 	@echo "    make cyclo       : Generate the cyclomatic complexity report"
@@ -113,9 +116,10 @@ help:
 	@echo "    make rpm         : Build an RPM package"
 	@echo "    make deb         : Build a DEB package"
 	@echo "    make bz2         : Build a tar bz2 (tbz2) compressed archive"
-	@echo "    make docker      : Build a docker container to run this service"
+	@echo "    make docker      : Build a scratch docker container to run this service"
+	@echo "    make dockertest  : Test the newly built docker container"
 	@echo ""
-	@echo "    make dbuild      : Build everything inside a Docker container"
+	@echo "    make dbuild      : build everything inside a Docker container"
 	@echo ""
 
 # Alias for help target
@@ -125,7 +129,9 @@ all: help
 test:
 	@mkdir -p target/test
 	@mkdir -p target/report
-	GOPATH=$(GOPATH) go test -covermode=count -coverprofile=target/report/coverage.out -bench=. -race -v ./... | tee >(PATH=$(GOPATH)/bin:$(PATH) go-junit-report > target/test/report.xml); test $${PIPESTATUS[0]} -eq 0
+	GOPATH=$(GOPATH) go test -covermode=count -coverprofile=target/report/coverage.out -bench=. -race -v ./... | \
+	tee >(PATH=$(GOPATH)/bin:$(PATH) go-junit-report > target/test/report.xml); \
+	test $${PIPESTATUS[0]} -eq 0
 
 # Format the source code
 format:
@@ -235,7 +241,7 @@ nuke:
 
 # Compile the application
 build: deps
-	GOPATH=$(GOPATH) go build -ldflags '-X main.ServiceVersion=${VERSION}' -o ./target/${BINPATH}$(PROJECT) ./src
+	GOPATH=$(GOPATH) CGO_ENABLED=0 go build -ldflags '-extldflags "-static" -s -X main.ServiceVersion=${VERSION} -X main.ServiceRelease=${RELEASE}' -o ./target/${BINPATH}$(PROJECT) ./src
 
 # Cross-compile the application for several platforms
 crossbuild: deps
@@ -257,7 +263,21 @@ endif
 # Build the RPM package for RedHat-like Linux distributions
 rpm:
 	rm -rf $(PATHRPMPKG)
-	rpmbuild --define "_topdir $(PATHRPMPKG)" --define "_vendor $(VENDOR)" --define "_owner $(OWNER)" --define "_project $(PROJECT)" --define "_package $(PKGNAME)" --define "_version $(VERSION)" --define "_release $(RELEASE)" --define "_current_directory $(CURRENTDIR)" --define "_binpath /$(BINPATH)" --define "_docpath /$(DOCPATH)" --define "_configpath /$(CONFIGPATH)" --define "_initpath /$(INITPATH)" --define "_manpath /$(MANPATH)" -bb resources/rpm/rpm.spec
+	rpmbuild \
+	--define "_topdir $(PATHRPMPKG)" \
+	--define "_vendor $(VENDOR)" \
+	--define "_owner $(OWNER)"\
+	 --define "_project $(PROJECT)" \
+	--define "_package $(PKGNAME)" \
+	--define "_version $(VERSION)" \
+	--define "_release $(RELEASE)" \
+	--define "_current_directory $(CURRENTDIR)" \
+	--define "_binpath /$(BINPATH)" \
+	--define "_docpath /$(DOCPATH)" \
+	--define "_configpath /$(CONFIGPATH)" \
+	--define "_initpath /$(INITPATH)" \
+	--define "_manpath /$(MANPATH)" \
+	-bb resources/rpm/rpm.spec
 
 # Build the DEB package for Debian-like Linux distributions
 deb: build
@@ -290,7 +310,8 @@ ifneq ($(strip $(MANPATH)),)
 	echo $(MANPATH) >> $(PATHDEBPKG)/$(PKGNAME)-$(VERSION)/debian/$(PKGNAME).dirs
 	echo "$(MANPATH)* $(MANPATH)" >> $(PATHDEBPKG)/$(PKGNAME)-$(VERSION)/debian/install
 endif
-	echo "new-package-should-close-itp-bug" > $(PATHDEBPKG)/$(PKGNAME)-$(VERSION)/debian/$(PKGNAME).lintian-overrides
+	echo "statically-linked-binary usr/bin/rndpwd" > $(PATHDEBPKG)/$(PKGNAME)-$(VERSION)/debian/$(PKGNAME).lintian-overrides
+	echo "new-package-should-close-itp-bug" >> $(PATHDEBPKG)/$(PKGNAME)-$(VERSION)/debian/$(PKGNAME).lintian-overrides
 	echo "hardening-no-relro $(BINPATH)$(PROJECT)" >> $(PATHDEBPKG)/$(PKGNAME)-$(VERSION)/debian/$(PKGNAME).lintian-overrides
 	echo "embedded-library $(BINPATH)$(PROJECT): libyaml" >> $(PATHDEBPKG)/$(PKGNAME)-$(VERSION)/debian/$(PKGNAME).lintian-overrides
 	cd $(PATHDEBPKG)/$(PKGNAME)-$(VERSION) && debuild -us -uc
@@ -306,9 +327,26 @@ docker: build
 	rm -rf $(PATHDOCKERPKG)
 	make install DESTDIR=$(PATHDOCKERPKG)
 	cp resources/DockerDeploy/Dockerfile $(PATHDOCKERPKG)/
-	docker build --no-cache --tag=${OWNER}/${PROJECT}:latest $(PATHDOCKERPKG)
+	docker build --no-cache --tag=${OWNER}/${PROJECT}$(DOCKERSUFFIX):latest $(PATHDOCKERPKG)
 
-# build everything inside a Docker container
-dbuild:
-	@mkdir -p target
-	./dockerbuild.sh
+# check if the deployment container starts
+dockertest:
+	docker stop $(shell docker ps -a | grep $(CONSUL_DOCKER_IMAGE_NAME) | cut -c1-12) 2> /dev/null || true
+	docker rm $(shell docker ps -a | grep $(CONSUL_DOCKER_IMAGE_NAME) | cut -c1-12) 2> /dev/null || true
+	docker run --detach=true --name=$(CONSUL_DOCKER_IMAGE_NAME) --publish=8500 --hostname=test.consul progrium/consul -server -bootstrap > target/consul_docker_container.id
+	sleep 3
+	docker inspect --format='{{(index (index .NetworkSettings.Ports "8500/tcp") 0).HostPort}}' `cat target/consul_docker_container.id` > target/consul_docker_container.port
+	curl -X PUT -d '{"serverMode":true,"serverAddress":":8765","charset":"0123456789abcdefghijklmnopqrstuvwxyz","length":17,"quantity": 7}' http://127.0.0.1:`cat target/consul_docker_container.port`/v1/kv/config/rndpwd
+	docker run --detach=true --net="host" --tty=true \
+	--env="NATSTEST_REMOTECONFIGPROVIDER=consul" \
+	--env="NATSTEST_REMOTECONFIGENDPOINT=127.0.0.1:`cat target/consul_docker_container.port`" \
+	--env="NATSTEST_REMOTECONFIGPATH=/config/rndpwd" \
+	--env="NATSTEST_REMOTECONFIGSECRETKEYRING=" \
+	${OWNER}/${PROJECT}$(DOCKERSUFFIX):latest > target/project_docker_container.id || true
+	sleep 3
+	docker inspect -f {{.State.Running}} `cat target/project_docker_container.id` > target/project_docker_container.run || true
+	docker stop `cat target/project_docker_container.id` || true
+	docker rm `cat target/project_docker_container.id` || true
+	docker stop `cat target/consul_docker_container.id` || true
+	docker rm `cat target/consul_docker_container.id` || true
+	@exit `grep -ic "false" target/project_docker_container.run`

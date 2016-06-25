@@ -3,7 +3,7 @@
     "remoteConfigEndpoint" : "",
     "remoteConfigPath" : "",
     "remoteConfigSecretKeyring" : "",
-    "serverMode": true,
+    "serverMode": false,
     "serverAddress": ":8080",
     "charset":"!#$%&()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ^_abcdefghijklmnopqrstuvwxyz~",
     "length": 32,

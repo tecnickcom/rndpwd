@@ -13,26 +13,44 @@ import (
 	"time"
 )
 
-func TestCliError(t *testing.T) {
-	os.Args = []string{"rndpwd", "--quantity=0"}
-	cmd := cli()
-	if cmdtype := reflect.TypeOf(cmd).String(); cmdtype != "*cobra.Command" {
-		t.Error(fmt.Errorf("The expected type is '*cobra.Command', found: '%s'", cmdtype))
-	}
+var emptyParamCases = []string{
+	"--serverMode=true --serverAddress=",
+	"--charset=",
+	"--length=",
+	"--quantity=",
+}
 
-	old := os.Stderr // keep backup of the real stdout
-	defer func() { os.Stderr = old }()
-	os.Stderr = nil
+func TestCliEmptyParamError(t *testing.T) {
+	for _, param := range emptyParamCases {
+		os.Args = []string{"natstest", param}
+		cmd, err := cli()
+		if err != nil {
+			t.Error(fmt.Errorf("An error wasn't expected: %v", err))
+			return
+		}
+		if cmdtype := reflect.TypeOf(cmd).String(); cmdtype != "*cobra.Command" {
+			t.Error(fmt.Errorf("The expected type is '*cobra.Command', found: '%s'", cmdtype))
+			return
+		}
 
-	// execute the main function
-	if err := cmd.Execute(); err == nil {
-		t.Error(fmt.Errorf("An error was expected"))
+		old := os.Stderr // keep backup of the real stdout
+		defer func() { os.Stderr = old }()
+		os.Stderr = nil
+
+		// execute the main function
+		if err := cmd.Execute(); err == nil {
+			t.Error(fmt.Errorf("An error was expected"))
+		}
 	}
 }
 
 func TestCli(t *testing.T) {
-	os.Args = []string{"maastest", "--server", "--httpaddr=:8765"}
-	cmd := cli()
+	os.Args = []string{"maastest", "--serverMode=true", "--serverAddress=:8765"}
+	cmd, err := cli()
+	if err != nil {
+		t.Error(fmt.Errorf("An error wasn't expected: %v", err))
+		return
+	}
 	if cmdtype := reflect.TypeOf(cmd).String(); cmdtype != "*cobra.Command" {
 		t.Error(fmt.Errorf("The expected type is '*cobra.Command', found: '%s'", cmdtype))
 		return
@@ -65,7 +83,7 @@ func TestCli(t *testing.T) {
 		// test 405
 		testEndPoint(t, "DELETE", "/", "", 405)
 		// test valid endpoints
-		testEndPoint(t, "GET", "/ping", "", 200)
+		testEndPoint(t, "GET", "/status", "", 200)
 		testEndPoint(t, "GET", "/password", "", 200)
 		testEndPoint(t, "GET", "/password?quantity=5", "", 200)
 		testEndPoint(t, "GET", "/password?quantity=5&length=13", "", 200)
@@ -75,7 +93,6 @@ func TestCli(t *testing.T) {
 		testEndPoint(t, "GET", "/password?length=0", "", 400)
 		testEndPoint(t, "GET", "/password?charset=", "", 400)
 
-		// close the server goroutine
 		wg.Done()
 	}()
 	wg.Wait()

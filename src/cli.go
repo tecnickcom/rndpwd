@@ -6,20 +6,23 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func cli() *cobra.Command {
+func cli() (*cobra.Command, error) {
 
 	// configuration parameters
-	cfgParams := getConfigParams()
+	cfgParams, err := getConfigParams()
+	if err != nil {
+		return nil, err
+	}
 
 	// set the root command
 	rootCmd := new(cobra.Command)
 
 	// overwrites the configuration parameters with the ones specified in the command line (if any)
-	rootCmd.Flags().BoolVarP(&appParams.server, "server", "s", cfgParams.server, "Start an HTTP RESTful API server")
-	rootCmd.Flags().StringVarP(&appParams.httpaddr, "httpaddr", "u", cfgParams.httpaddr, "HTTP API address (ip:port) or just (:port)")
-	rootCmd.Flags().IntVarP(&appParams.quantity, "quantity", "q", cfgParams.quantity, "Number of passwords to generate")
-	rootCmd.Flags().IntVarP(&appParams.length, "length", "l", cfgParams.length, "Length of each password (number of characters or bytes)")
+	rootCmd.Flags().BoolVarP(&appParams.serverMode, "serverMode", "s", cfgParams.serverMode, "Start an HTTP RESTful API server")
+	rootCmd.Flags().StringVarP(&appParams.serverAddress, "serverAddress", "u", cfgParams.serverAddress, "HTTP API address (ip:port) or just (:port)")
 	rootCmd.Flags().StringVarP(&appParams.charset, "charset", "c", cfgParams.charset, "Characters to use to generate a password")
+	rootCmd.Flags().IntVarP(&appParams.length, "length", "l", cfgParams.length, "Length of each password (number of characters or bytes)")
+	rootCmd.Flags().IntVarP(&appParams.quantity, "quantity", "q", cfgParams.quantity, "Number of passwords to generate")
 
 	rootCmd.Use = "rndpwd"
 	rootCmd.Short = "Command-line and Web-service Random Password Generator"
@@ -30,14 +33,14 @@ func cli() *cobra.Command {
 		if err != nil {
 			return err
 		}
-		if appParams.server {
+		if appParams.serverMode {
 			// start the HTTP server
-			startServer(appParams.httpaddr)
-		} else {
-			// generate and print the passwords
-			for _, psw := range getAllPassword(appParams) {
-				fmt.Println(psw)
-			}
+			return startServer(appParams.serverAddress)
+		}
+
+		// generate and print the passwords
+		for _, psw := range getAllPassword(appParams) {
+			fmt.Println(psw)
 		}
 		return nil
 	}
@@ -48,10 +51,10 @@ func cli() *cobra.Command {
 		Short: "print this program version",
 		Long:  `print this program version`,
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Println(AppVersion)
+			fmt.Println(ServiceVersion)
 		},
 	}
 	rootCmd.AddCommand(versionCmd)
 
-	return rootCmd
+	return rootCmd, nil
 }
