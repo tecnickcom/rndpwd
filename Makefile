@@ -83,7 +83,7 @@ PATHDOCKERPKG=$(CURRENTDIR)/target/DOCKER
 CCTARGETS=darwin/386 darwin/amd64 freebsd/386 freebsd/amd64 freebsd/arm linux/386 linux/amd64 linux/arm openbsd/386 openbsd/amd64 windows/386 windows/amd64
 
 # docker image name for consul (used during testing)
-CONSUL_DOCKER_IMAGE_NAME=consul_$(OWNER)_$(PROJECT)$(DOCKERSUFFIX)_$(VERSION)-$(RELEASE)
+CONSUL_DOCKER_IMAGE_NAME=consul_$(OWNER)_$(PROJECT)$(DOCKERSUFFIX)
 
 # --- MAKE TARGETS ---
 
@@ -331,10 +331,16 @@ docker: build
 
 # check if the deployment container starts
 dockertest:
-	docker stop $(shell docker ps -a | grep $(CONSUL_DOCKER_IMAGE_NAME) | cut -c1-12) 2> /dev/null || true
-	docker rm $(shell docker ps -a | grep $(CONSUL_DOCKER_IMAGE_NAME) | cut -c1-12) 2> /dev/null || true
+	# clean any previous container (if any)
+	rm -f target/old_docker_containers.id
+	docker ps -a | grep $(CONSUL_DOCKER_IMAGE_NAME) | awk '{print $$1}' >> target/old_docker_containers.id
+	docker ps -a | grep ${OWNER}/${PROJECT}$(DOCKERSUFFIX) | awk '{print $$1}' >> target/old_docker_containers.id
+	docker stop `cat target/old_docker_containers.id` 2> /dev/null || true
+	docker rm `cat target/old_docker_containers.id` 2> /dev/null || true
+	# start Consul service inside a Docker container
 	docker run --detach=true --name=$(CONSUL_DOCKER_IMAGE_NAME) --publish=8500 --hostname=test.consul progrium/consul -server -bootstrap > target/consul_docker_container.id
-	sleep 3
+	sleep 5
+	# push Consul configuration
 	docker inspect --format='{{(index (index .NetworkSettings.Ports "8500/tcp") 0).HostPort}}' `cat target/consul_docker_container.id` > target/consul_docker_container.port
 	curl -X PUT -d '{"serverMode":true,"serverAddress":":8765","charset":"0123456789abcdefghijklmnopqrstuvwxyz","length":17,"quantity": 7}' http://127.0.0.1:`cat target/consul_docker_container.port`/v1/kv/config/rndpwd
 	docker run --detach=true --net="host" --tty=true \
@@ -343,8 +349,10 @@ dockertest:
 	--env="NATSTEST_REMOTECONFIGPATH=/config/rndpwd" \
 	--env="NATSTEST_REMOTECONFIGSECRETKEYRING=" \
 	${OWNER}/${PROJECT}$(DOCKERSUFFIX):latest > target/project_docker_container.id || true
-	sleep 3
+	sleep 5
+	# check if the container is working
 	docker inspect -f {{.State.Running}} `cat target/project_docker_container.id` > target/project_docker_container.run || true
+	# remove containers
 	docker stop `cat target/project_docker_container.id` || true
 	docker rm `cat target/project_docker_container.id` || true
 	docker stop `cat target/consul_docker_container.id` || true
