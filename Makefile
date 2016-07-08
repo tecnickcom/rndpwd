@@ -135,12 +135,12 @@ test:
 
 # Format the source code
 format:
-	@find ./ -type f -name "*.go" -exec gofmt -w {} \;
+	@find ./ -type f -name "*.go" -exec gofmt -s -w {} \;
 
 # Check if the source code has been formatted
 fmtcheck:
 	@mkdir -p target
-	@find ./ -type f -name "*.go" -exec gofmt -d {} \; | tee target/format.diff
+	@find ./ -type f -name "*.go" -exec gofmt -s -d {} \; | tee target/format.diff
 	@test ! -s target/format.diff || { echo "ERROR: the source code has not been formatted - please use 'make format' or 'gofmt'"; exit 1; }
 
 # Check for syntax errors
