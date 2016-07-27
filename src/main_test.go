@@ -22,7 +22,10 @@ import (
 func TestRndpwdVersion(t *testing.T) {
 	os.Args = []string{"rndpwd", "version"}
 	out := getMainOutput()
-	match, _ := regexp.MatchString("^[\\d]+\\.[\\d]+\\.[\\d]+[\\s]*$", out)
+	match, err := regexp.MatchString("^[\\d]+\\.[\\d]+\\.[\\d]+[\\s]*$", out)
+	if err != nil {
+		t.Error(fmt.Errorf("An error wasn't expected: ", err))
+	}
 	if !match {
 		t.Error(fmt.Errorf("The expected version hs not been returned"))
 	}
@@ -47,7 +50,10 @@ func TestRndpwdOne(t *testing.T) {
 func TestRndpwdFixed(t *testing.T) {
 	os.Args = []string{"rndpwd", "--charset=abc", "--length=4", "--quantity=1"}
 	out := getMainOutput()
-	match, _ := regexp.MatchString("^[abc]{4}[\\s]*$", out)
+	match, err := regexp.MatchString("^[abc]{4}[\\s]*$", out)
+	if err != nil {
+		t.Error(fmt.Errorf("An error wasn't expected: ", err))
+	}
 	if !match {
 		t.Error(fmt.Errorf("Expected 'aaaa' password %s", out))
 	}
@@ -56,7 +62,10 @@ func TestRndpwdFixed(t *testing.T) {
 func getMainOutput() string {
 	old := os.Stdout // keep backup of the real stdout
 	defer func() { os.Stdout = old }()
-	r, w, _ := os.Pipe()
+	r, w, err := os.Pipe()
+	if err != nil {
+		t.Error(fmt.Errorf("An error wasn't expected: ", err))
+	}
 	os.Stdout = w
 
 	// execute the main function
