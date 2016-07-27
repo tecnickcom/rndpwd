@@ -21,10 +21,10 @@ import (
 
 func TestRndpwdVersion(t *testing.T) {
 	os.Args = []string{"rndpwd", "version"}
-	out := getMainOutput()
+	out := getMainOutput(t)
 	match, err := regexp.MatchString("^[\\d]+\\.[\\d]+\\.[\\d]+[\\s]*$", out)
 	if err != nil {
-		t.Error(fmt.Errorf("An error wasn't expected: ", err))
+		t.Error(fmt.Errorf("An error wasn't expected: %v", err))
 	}
 	if !match {
 		t.Error(fmt.Errorf("The expected version hs not been returned"))
@@ -33,7 +33,7 @@ func TestRndpwdVersion(t *testing.T) {
 
 func TestRndpwd(t *testing.T) {
 	os.Args = []string{"rndpwd"}
-	out := getMainOutput()
+	out := getMainOutput(t)
 	if len(out) != 330 {
 		t.Error(fmt.Errorf("Expected 330 characters output (10 x 33 chars) %v", out))
 	}
@@ -41,7 +41,7 @@ func TestRndpwd(t *testing.T) {
 
 func TestRndpwdOne(t *testing.T) {
 	os.Args = []string{"rndpwd", "--length=64", "--quantity=1"}
-	out := getMainOutput()
+	out := getMainOutput(t)
 	if len(out) != 65 {
 		t.Error(fmt.Errorf("Expected 1 64 character password + newline"))
 	}
@@ -49,22 +49,22 @@ func TestRndpwdOne(t *testing.T) {
 
 func TestRndpwdFixed(t *testing.T) {
 	os.Args = []string{"rndpwd", "--charset=abc", "--length=4", "--quantity=1"}
-	out := getMainOutput()
+	out := getMainOutput(t)
 	match, err := regexp.MatchString("^[abc]{4}[\\s]*$", out)
 	if err != nil {
-		t.Error(fmt.Errorf("An error wasn't expected: ", err))
+		t.Error(fmt.Errorf("An error wasn't expected: %v", err))
 	}
 	if !match {
 		t.Error(fmt.Errorf("Expected 'aaaa' password %s", out))
 	}
 }
 
-func getMainOutput() string {
+func getMainOutput(t *testing.T) string {
 	old := os.Stdout // keep backup of the real stdout
 	defer func() { os.Stdout = old }()
 	r, w, err := os.Pipe()
 	if err != nil {
-		t.Error(fmt.Errorf("An error wasn't expected: ", err))
+		t.Error(fmt.Errorf("An error wasn't expected: %v", err))
 	}
 	os.Stdout = w
 
