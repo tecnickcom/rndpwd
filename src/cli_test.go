@@ -18,6 +18,8 @@ var emptyParamCases = []string{
 	"--charset=",
 	"--length=",
 	"--quantity=",
+	"--logLevel=",
+	"--logLevel=INVALID",
 }
 
 func TestCliEmptyParamError(t *testing.T) {

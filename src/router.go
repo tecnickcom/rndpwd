@@ -11,7 +11,7 @@ import (
 
 // start the HTTP server
 func startServer(address string) error {
-	infoLog.Printf("starting %s %s http server", ServiceName, ServiceVersion)
+	Log(INFO, "starting %s %s http server", ServiceName, ServiceVersion)
 	router := httprouter.New()
 
 	// set error handlers
@@ -33,7 +33,7 @@ func startServer(address string) error {
 		router.Handle(route.Method, route.Path, route.Handle)
 	}
 
-	infoLog.Printf("http server listening at '%s'", address)
+	Log(INFO, "http server listening at '%s'", address)
 	return fmt.Errorf("unable to start the HTTP server: %v", http.ListenAndServe(address, router))
 }
 
@@ -56,10 +56,10 @@ func sendResponse(hw http.ResponseWriter, hr *http.Request, ps httprouter.Params
 	}
 
 	// log request
-	infoLog.Printf("%s\t%s\t%d", hr.Method, hr.RequestURI, code)
+	Log(INFO, "%s\t%s\t%d", hr.Method, hr.RequestURI, code)
 
 	// send response as JSON
 	if err := json.NewEncoder(hw).Encode(response); err != nil {
-		errLog.Println(err)
+		Log(ERROR, "%v", err)
 	}
 }

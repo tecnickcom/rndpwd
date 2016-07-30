@@ -9,7 +9,7 @@ import (
 )
 
 func TestCheckParams(t *testing.T) {
-	err := checkParams(&params{quantity: 1, length: 2, charset: "abc"})
+	err := checkParams(&params{quantity: 1, length: 2, charset: "abc", logLevel: "INFO"})
 	if err != nil {
 		t.Error(fmt.Errorf("No errors are expected"))
 	}
@@ -55,6 +55,20 @@ func TestCheckParamsErrorsValidCharset(t *testing.T) {
 	}
 }
 
+func TestCheckParamsErrorsLogLevelEmpty(t *testing.T) {
+	err := checkParams(&params{quantity: 1, length: 2, charset: "abc", logLevel: ""})
+	if err == nil {
+		t.Error(fmt.Errorf("An error was expected because the logLevel is empty"))
+	}
+}
+
+func TestCheckParamsErrorsLogLevelInvalid(t *testing.T) {
+	err := checkParams(&params{quantity: 1, length: 2, charset: "abc", logLevel: "INVALID"})
+	if err == nil {
+		t.Error(fmt.Errorf("An error was expected because the logLevel is not valid"))
+	}
+}
+
 func TestGetConfigParams(t *testing.T) {
 	prm, err := getConfigParams()
 	if err != nil {
@@ -74,6 +88,9 @@ func TestGetConfigParams(t *testing.T) {
 	}
 	if prm.charset != "!#$%&()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ^_abcdefghijklmnopqrstuvwxyz~" {
 		t.Error(fmt.Errorf("Fond different charset than expected"))
+	}
+	if prm.logLevel != "DEBUG" {
+		t.Error(fmt.Errorf("Found different logLevel than expected"))
 	}
 }
 
@@ -102,6 +119,9 @@ func TestGetLocalConfigParams(t *testing.T) {
 	}
 	if prm.charset != "!#$%&()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ^_abcdefghijklmnopqrstuvwxyz~" {
 		t.Error(fmt.Errorf("Fond different charset than expected"))
+	}
+	if prm.logLevel != "DEBUG" {
+		t.Error(fmt.Errorf("Found different logLevel than expected"))
 	}
 	if rprm.remoteConfigProvider != "consul" {
 		t.Error(fmt.Errorf("Found different remoteConfigProvider than expected"))
@@ -172,6 +192,9 @@ func TestGetConfigParamsRemote(t *testing.T) {
 	}
 	if prm.charset != "0123456789abcdefghijklmnopqrstuvwxyz" {
 		t.Error(fmt.Errorf("Fond different charset than expected"))
+	}
+	if prm.logLevel != "DEBUG" {
+		t.Error(fmt.Errorf("Found different logLevel than expected"))
 	}
 }
 

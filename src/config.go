@@ -29,6 +29,7 @@ type params struct {
 	charsetLength int    // length of the character set in bytes
 	length        int    // length of each password (number of characters or bytes)
 	quantity      int    // number of passwords to generate
+	logLevel      string // Log level: NONE, EMERGENCY, ALERT, CRITICAL, ERROR, WARNING, NOTICE, INFO, DEBUG
 }
 
 var appParams = new(params)
@@ -56,6 +57,7 @@ func getLocalConfigParams() (cfg params, rcfg remoteConfigParams) {
 	viper.SetDefault("charset", ValidCharset)
 	viper.SetDefault("length", PasswordLength)
 	viper.SetDefault("quantity", NumPasswords)
+	viper.SetDefault("logLevel", LogLevel)
 
 	// name of the configuration file without extension
 	viper.SetConfigName("config")
@@ -78,6 +80,7 @@ func getLocalConfigParams() (cfg params, rcfg remoteConfigParams) {
 		charset:       viper.GetString("charset"),
 		length:        viper.GetInt("length"),
 		quantity:      viper.GetInt("quantity"),
+		logLevel:      viper.GetString("logLevel"),
 	}
 
 	// support environment variables for the remote configuration
@@ -113,6 +116,7 @@ func getRemoteConfigParams(cfg params, rcfg remoteConfigParams) (params, error) 
 	viper.SetDefault("charset", cfg.charset)
 	viper.SetDefault("length", cfg.length)
 	viper.SetDefault("quantity", cfg.quantity)
+	viper.SetDefault("logLevel", cfg.logLevel)
 
 	// configuration type
 	viper.SetConfigType("json")
@@ -139,6 +143,7 @@ func getRemoteConfigParams(cfg params, rcfg remoteConfigParams) (params, error) 
 			charset:       viper.GetString("charset"),
 			length:        viper.GetInt("length"),
 			quantity:      viper.GetInt("quantity"),
+			logLevel:      viper.GetString("logLevel"),
 		},
 		nil
 }
@@ -162,5 +167,13 @@ func checkParams(prm *params) error {
 	if prm.quantity < 1 {
 		return errors.New("The number of passwords to generate must be at least 1")
 	}
+	if prm.logLevel == "" {
+		return errors.New("logLevel is empty")
+	}
+	levelNum, ok := logLevelCodes[prm.logLevel]
+	if !ok {
+		return errors.New("The logLevel must be one of the following: NONE, EMERGENCY, ALERT, CRITICAL, ERROR, WARNING, NOTICE, INFO, DEBUG")
+	}
+	logLevelCode = levelNum
 	return nil
 }

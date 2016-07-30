@@ -64,6 +64,7 @@ Flags:
 -c, --charset="!#.0123456789@ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz": Characters to use to generate a password
 -l, --length=16: Length of each password (number of characters or bytes)
 -q, --quantity=1: Number of passwords to generate
+-o, --loglevel=INFO: Log level: NONE, EMERGENCY, ALERT, CRITICAL, ERROR, WARNING, NOTICE, INFO, DEBUG
 ```
 
 ## Configuration
@@ -120,6 +121,24 @@ Start aan HTTP RESTful API server listening on port 8080
 ```bash
 target/usr/bin/rndpwd --server --serverAddress=:8080
 ```
+
+## Logs
+
+This service logs the log messages in the *Stderr* or *Stdout* using the syslog prefixes:
+
+
+| PREFIX                            | LEVEL | DESCRIPTION                                                                            | OUTPUT |
+|:--------------------------------- |:-----:|:-------------------------------------------------------------------------------------- |:------:|
+|<nobr> [EMERGENCY] [rndpwd] </nobr>|   0   |<nobr> **Emergency**: System is unusable                                         </nobr>| Stderr |
+|<nobr> [ALERT] [rndpwd]     </nobr>|   1   |<nobr> **Alert**: Should be corrected immediately                                </nobr>| Stderr |
+|<nobr> [CRITICAL] [rndpwd]  </nobr>|   2   |<nobr> **Critical**: Critical conditions                                         </nobr>| Stderr |
+|<nobr> [ERROR] [rndpwd]     </nobr>|   3   |<nobr> **Error**: Error conditions                                               </nobr>| Stderr |
+|<nobr> [WARNING] [rndpwd]   </nobr>|   4   |<nobr> **Warning**: May indicate that an error will occur if action is not taken </nobr>| Stderr |
+|<nobr> [NOTICE] [rndpwd]    </nobr>|   5   |<nobr> **Notice**: Events that are unusual, but not error conditions             </nobr>| Stderr |
+|<nobr> [INFO] [rndpwd]      </nobr>|   6   |<nobr> **Informational**: Normal operational messages that require no action     </nobr>| Stderr |
+|<nobr> [DEBUG] [rndpwd]     </nobr>|   7   |<nobr> **Debug**: Information useful to developers for debugging the application </nobr>| Stderr |
+
+
 
 ## Developer(s) Contact
 

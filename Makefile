@@ -174,7 +174,7 @@ misspell:
 # AST scanner
 astscan:
 	@mkdir -p target/report
-	GOPATH=$(GOPATH) gas -nosec=true ./... | tee target/report/astscan.txt
+	GOPATH=$(GOPATH) gas --nosec=true ./... | tee target/report/astscan.txt
 
 # Generate source docs
 docs:
@@ -365,3 +365,8 @@ dockertest:
 	docker stop `cat target/consul_docker_container.id` || true
 	docker rm `cat target/consul_docker_container.id` || true
 	@exit `grep -ic "false" target/project_docker_container.run`
+
+# build everything inside a Docker container
+dbuild: deps
+	@mkdir -p target
+	./dockerbuild.sh
