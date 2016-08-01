@@ -8,5 +8,5 @@
     "charset":"!#$%&()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ^_abcdefghijklmnopqrstuvwxyz~",
     "length": 32,
     "quantity": 10,
-    "logLevel" : "INFO"
+    "logLevel" : "info"
 }

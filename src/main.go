@@ -2,13 +2,21 @@
 // Command-line and Web-service Random Password Generator
 package main
 
+import (
+	log "github.com/Sirupsen/logrus"
+)
+
 func main() {
 	rootCmd, err := cli()
 	if err != nil {
-		Log(CRITICAL, "unable to start the service: %v", err)
+		log.WithFields(log.Fields{
+			"error": err,
+		}).Fatal("unable to start the service")
 	}
 	// execute the root command and log errors (if any)
 	if err = rootCmd.Execute(); err != nil {
-		Log(CRITICAL, "unable to start the service: %v", err)
+		log.WithFields(log.Fields{
+			"error": err,
+		}).Fatal("unable to start the service")
 	}
 }

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"regexp"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/spf13/viper"
 	_ "github.com/spf13/viper/remote"
 )
@@ -170,10 +171,10 @@ func checkParams(prm *params) error {
 	if prm.logLevel == "" {
 		return errors.New("logLevel is empty")
 	}
-	levelNum, ok := logLevelCodes[prm.logLevel]
-	if !ok {
-		return errors.New("The logLevel must be one of the following: NONE, EMERGENCY, ALERT, CRITICAL, ERROR, WARNING, NOTICE, INFO, DEBUG")
+	levelCode, err := log.ParseLevel(prm.logLevel)
+	if err != nil {
+		return errors.New("The logLevel must be one of the following: panic, fatal, error, warning, info, debug")
 	}
-	logLevelCode = levelNum
+	log.SetLevel(levelCode)
 	return nil
 }

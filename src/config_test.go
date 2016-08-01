@@ -9,7 +9,7 @@ import (
 )
 
 func TestCheckParams(t *testing.T) {
-	err := checkParams(&params{quantity: 1, length: 2, charset: "abc", logLevel: "INFO"})
+	err := checkParams(&params{quantity: 1, length: 2, charset: "abc", logLevel: "info"})
 	if err != nil {
 		t.Error(fmt.Errorf("No errors are expected"))
 	}
@@ -89,7 +89,7 @@ func TestGetConfigParams(t *testing.T) {
 	if prm.charset != "!#$%&()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ^_abcdefghijklmnopqrstuvwxyz~" {
 		t.Error(fmt.Errorf("Fond different charset than expected"))
 	}
-	if prm.logLevel != "DEBUG" {
+	if prm.logLevel != "debug" {
 		t.Error(fmt.Errorf("Found different logLevel than expected"))
 	}
 }
@@ -120,7 +120,7 @@ func TestGetLocalConfigParams(t *testing.T) {
 	if prm.charset != "!#$%&()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ^_abcdefghijklmnopqrstuvwxyz~" {
 		t.Error(fmt.Errorf("Fond different charset than expected"))
 	}
-	if prm.logLevel != "DEBUG" {
+	if prm.logLevel != "debug" {
 		t.Error(fmt.Errorf("Found different logLevel than expected"))
 	}
 	if rprm.remoteConfigProvider != "consul" {
@@ -193,7 +193,7 @@ func TestGetConfigParamsRemote(t *testing.T) {
 	if prm.charset != "0123456789abcdefghijklmnopqrstuvwxyz" {
 		t.Error(fmt.Errorf("Fond different charset than expected"))
 	}
-	if prm.logLevel != "DEBUG" {
+	if prm.logLevel != "debug" {
 		t.Error(fmt.Errorf("Found different logLevel than expected"))
 	}
 }

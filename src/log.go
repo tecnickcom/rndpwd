@@ -1,66 +1,71 @@
 package main
 
 import (
-	"log"
+	"encoding/json"
+	"fmt"
 	"os"
+	"time"
+
+	log "github.com/Sirupsen/logrus"
 )
 
-// Log levels
-const (
-	NONE int = iota - 1
-	EMERGENCY
-	ALERT
-	CRITICAL
-	ERROR
-	WARNING
-	NOTICE
-	INFO
-	DEBUG
-)
+func init() {
+	// Log as JSON instead of the default ASCII formatter.
+	log.SetFormatter(new(logJSONFormatter))
 
-// logLevelCodes list log level codes by name (revese map of logLevelNames)
-var logLevelCodes = map[string]int{
-	"NONE":      NONE,      // Disable log
-	"EMERGENCY": EMERGENCY, // System is unusable
-	"ALERT":     ALERT,     // Should be corrected immediately
-	"CRITICAL":  CRITICAL,  // Critical conditions
-	"ERROR":     ERROR,     // Error conditions
-	"WARNING":   WARNING,   // May indicate that an error will occur if action is not taken
-	"NOTICE":    NOTICE,    // Events that are unusual, but not error conditions
-	"INFO":      INFO,      // Normal operational messages that require no action
-	"DEBUG":     DEBUG,     // Information useful to developers for debugging the application
+	// Output to stderr instead of stdout, could also be a file.
+	log.SetOutput(os.Stderr)
+
+	// Only log the warning severity or above.
+	log.SetLevel(log.DebugLevel)
 }
 
-// logLevelNames list log level names by code (revese map of logLevelCodes)
-var logLevelNames = map[int]string{
-	NONE:      "NONE",      // Disable log
-	EMERGENCY: "EMERGENCY", // System is unusable
-	ALERT:     "ALERT",     // Should be corrected immediately
-	CRITICAL:  "CRITICAL",  // Critical conditions
-	ERROR:     "ERROR",     // Error conditions
-	WARNING:   "WARNING",   // May indicate that an error will occur if action is not taken
-	NOTICE:    "NOTICE",    // Events that are unusual, but not error conditions
-	INFO:      "INFO",      // Normal operational messages that require no action
-	DEBUG:     "DEBUG",     // Information useful to developers for debugging the application
+type logJSONFormatter struct {
+	// TimestampFormat sets the format used for marshaling timestamps.
+	TimestampFormat string
 }
 
-// logLevel is the current reporting log level
-var logLevelCode = INFO
-
-// logOutput set the log output
-var logOutput = os.Stderr
-
-// Log using the the specified level
-func Log(level int, format string, v ...interface{}) {
-	levelName, ok := logLevelNames[level]
-	if !ok || (level > logLevelCode) {
-		return
+// Format is a custom JSON formatter for the logs
+func (f *logJSONFormatter) Format(entry *log.Entry) ([]byte, error) {
+	data := make(log.Fields, len(entry.Data)+3)
+	for k, v := range entry.Data {
+		switch v := v.(type) {
+		case error:
+			// Otherwise errors are ignored by `encoding/json`
+			// https://github.com/Sirupsen/logrus/issues/137
+			data[k] = v.Error()
+		default:
+			data[k] = v
+		}
 	}
-	prefix := "[" + levelName + "] [" + ServiceName + "] "
-	logger := log.New(logOutput, prefix, log.LstdFlags|log.LUTC)
-	if level > CRITICAL {
-		logger.Printf(format, v...)
-	} else {
-		logger.Fatalf(format, v...)
+	prefixFieldClashes(data)
+
+	timestampFormat := f.TimestampFormat
+	if timestampFormat == "" {
+		timestampFormat = log.DefaultTimestampFormat
+	}
+
+	data["program"] = ServiceName
+	data["version"] = ServiceVersion
+	data["release"] = ServiceRelease
+	data["time"] = entry.Time.Format(timestampFormat)
+	data["timestamp"] = time.Now().UTC().UnixNano()
+	data["msg"] = entry.Message
+	data["level"] = entry.Level.String()
+
+	serialized, err := json.Marshal(data)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to marshal fields to JSON, %v", err)
+	}
+	return append(serialized, '\n'), nil
+}
+
+// prefixFieldClashes avoid overwrite default fields
+func prefixFieldClashes(data log.Fields) {
+	fields := [...]string{"program", "version", "release", "time", "timestamp", "msg", "level"}
+	for i := range fields {
+		if val, ok := data[fields[i]]; ok {
+			data["fields."+fields[i]] = val
+		}
 	}
 }

@@ -6,12 +6,13 @@ import (
 	"net/http"
 	"time"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/julienschmidt/httprouter"
 )
 
 // start the HTTP server
 func startServer(address string) error {
-	Log(INFO, "starting %s %s http server", ServiceName, ServiceVersion)
+	log.Info("setting http router")
 	router := httprouter.New()
 
 	// set error handlers
@@ -33,7 +34,9 @@ func startServer(address string) error {
 		router.Handle(route.Method, route.Path, route.Handle)
 	}
 
-	Log(INFO, "http server listening at '%s'", address)
+	log.WithFields(log.Fields{
+		"address": address,
+	}).Info("starting http server")
 	return fmt.Errorf("unable to start the HTTP server: %v", http.ListenAndServe(address, router))
 }
 
@@ -56,10 +59,16 @@ func sendResponse(hw http.ResponseWriter, hr *http.Request, ps httprouter.Params
 	}
 
 	// log request
-	Log(INFO, "%s\t%s\t%d", hr.Method, hr.RequestURI, code)
+	log.WithFields(log.Fields{
+		"type": hr.Method,
+		"URI":  hr.RequestURI,
+		"code": code,
+	}).Info("request")
 
 	// send response as JSON
 	if err := json.NewEncoder(hw).Encode(response); err != nil {
-		Log(ERROR, "%v", err)
+		log.WithFields(log.Fields{
+			"error": err,
+		}).Error("unable to send the JSON response")
 	}
 }

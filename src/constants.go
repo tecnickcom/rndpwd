@@ -37,7 +37,7 @@ var ConfigPath = [...]string{
 }
 
 // LogLevel defines the default log level: NONE, EMERGENCY, ALERT, CRITICAL, ERROR, WARNING, NOTICE, INFO, DEBUG
-const LogLevel = "INFO"
+const LogLevel = "info"
 
 // RemoteConfigProvider is the remote configuration source ("consul", "etcd")
 const RemoteConfigProvider = ""
