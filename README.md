@@ -18,6 +18,9 @@
 * **copyright**   2015-2016 Nicola Asuni - Tecnick.com LTD
 * **license**     MIT (see LICENSE)
 * **link**        https://github.com/tecnickcom/rndpwd
+* **RPM**         https://bintray.com/tecnickcom/rpm/rndpwd
+* **DEB**         https://bintray.com/tecnickcom/deb/rndpwd
+
 
 ## Description
 
