@@ -22,8 +22,13 @@ matrix:
 addons:
   apt:
     packages:
+    - devscripts
+    - debhelper
+    - pkg-config
     - alien
     - rpm
+    - dh-make
+    - dh-golang
 
 before_install:
   - if [ -n "$GH_USER" ]; then git config --global github.user ${GH_USER}; fi;
