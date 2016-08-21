@@ -5,7 +5,7 @@
 # ------------------------------------------------------------------------------
 
 # List special make targets that are not associated with files
-.PHONY: help all test format fmtcheck vet lint coverage cyclo ineffassign misspell astscan qa deps install uninstall clean nuke build rpm deb bz2 docker dockertest dbuild
+.PHONY: help all test format fmtcheck vet lint coverage cyclo ineffassign misspell astscan qa deps install uninstall clean nuke build rpm deb bz2 docker dockertest dbuild bintray
 
 # Use bash as shell (Note: Ubuntu now uses dash which doesn't support PIPESTATUS).
 SHELL=/bin/bash
@@ -370,3 +370,8 @@ dockertest:
 dbuild: deps
 	@mkdir -p target
 	./dockerbuild.sh
+
+# upload linux packages to bintray
+bintray: rpm deb
+	curl -T target/RPM/RPMS/noarch/tecnickcom-${PROJECT}-${VERSION}-${RELEASE}.noarch.rpm -u${APIUSR}:${APIKEY} -H "X-Bintray-Package:${PROJECT}" -H "X-Bintray-Version:${VERSION}" -H "X-Bintray-Publish:1" -H "X-Bintray-Override:1" https://api.bintray.com/content/tecnickcom/rpm/tecnickcom-${PROJECT}-${VERSION}-${RELEASE}.noarch.rpm
+	curl -T target/DEB/tecnickcom-${PROJECT}_${VERSION}-${RELEASE}_all.deb -u${APIUSR}:${APIKEY} -H "X-Bintray-Package:${PROJECT}" -H "X-Bintray-Version:${VERSION}" -H "X-Bintray-Debian-Distribution:all" -H "X-Bintray-Debian-Component:main" -H "X-Bintray-Debian-Architecture:all" -H "X-Bintray-Publish:1" -H "X-Bintray-Override:1" https://api.bintray.com/content/tecnickcom/deb/tecnickcom-${PROJECT}_${VERSION}-${RELEASE}_all.deb

@@ -19,6 +19,12 @@ matrix:
   allow_failures:
     - go: tip
 
+addons:
+  apt:
+    packages:
+    - alien
+    - rpm
+
 before_install:
   - if [ -n "$GH_USER" ]; then git config --global github.user ${GH_USER}; fi;
   - if [ -n "$GH_TOKEN" ]; then git config --global github.token ${GH_TOKEN}; fi;
@@ -29,6 +35,7 @@ before_script:
 
 script:
   - make qa
+  - if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_GO_VERSION" = "1.6" ] && [ -n "$BT_APIUSER" ]; then make bintray APIUSER=${BT_APIUSER} APIKEY=${BT_APIKEY}; fi;
 
 after_failure:
   - cat ./target/test/report.xml
