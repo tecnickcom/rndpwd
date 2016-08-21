@@ -49,26 +49,32 @@ ENV TERM linux
 RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
 ENV HOME /root
 ENV DISPLAY :0
-ENV GOPATH=/root/GO
+ENV GOPATH=/root
 ENV PATH=$GOPATH/bin:$PATH
 
-# add i386 architecture for wine
+# add i386 architecture
 RUN dpkg --add-architecture i386
 
 # add repositories and update
 RUN apt-get update && apt-get -y dist-upgrade && \
     apt-get install -y apt-utils software-properties-common python-software-properties && \
+    apt-add-repository universe && \
     apt-add-repository multiverse && \
     apt-get update
 
 # install development packages and debugging tools
-RUN apt-get install -y wget nano vim curl rsync git screen python build-essential autotools-dev autoconf make cmake gcc g++ libboost-all-dev golang golang-golang-x-tools alien rpm dh-make dh-golang debhelper devscripts pbuilder strace lsof gdb valgrind pkg-config openssh-server openssh-client upx-ucl
+RUN apt-get install -y wget nano vim curl rsync git screen build-essential python python-dev python-pip libffi-dev autotools-dev autoconf make cmake gcc g++ golang golang-golang-x-tools alien rpm dh-make dh-golang debhelper devscripts pbuilder strace lsof gdb valgrind pkg-config doxygen doxygen-latex lcov libc6 libc6-dev astyle pylint pyflakes flawfinder libboost-all-dev openssh-server openssh-client upx-ucl
 
-RUN apt-get install -y binutils-mingw-w64 binutils-mingw-w64-i686 binutils-mingw-w64-x86-64 g++-mingw-w64 g++-mingw-w64-i686 g++-mingw-w64-x86-64 gcc-mingw-w64 gcc-mingw-w64-base gcc-mingw-w64-i686 gcc-mingw-w64-x86-64 gdb-mingw-w64 gdb-mingw-w64-target gfortran-mingw-w64 gnat-mingw-w64 gnat-mingw-w64-base gnat-mingw-w64-i686 gnat-mingw-w64-x86-64 gobjc++-mingw-w64 gobjc++-mingw-w64-i686 gobjc++-mingw-w64-x86-64 gobjc-mingw-w64 gobjc-mingw-w64-i686 gobjc-mingw-w64-x86-64 libz-mingw-w64 libz-mingw-w64-dev mingw-w64 mingw-w64-common mingw-w64-i686-dev mingw-w64-tools mingw-w64-x86-64-dev mingw-ocaml ocaml-mingw-w64 ocaml-mingw-w64-i686 ocaml-mingw-w64-x86-64 pkg-config dos2unix ubuntu-restricted-extras ubuntu-restricted-addons wine64-development-tools winetricks wine
+# add mingw for cross compiling the Windows version in Linux
+RUN apt-get install -y dos2unix mingw-w64 binutils-mingw-w64 mingw-w64-tools mingw-w64-i686-dev mingw-w64-x86-64-dev wine winetricks libwine-development ubuntu-restricted-extras ubuntu-restricted-addons wine64-development-tools binfmt-support
+
+RUN pip install --upgrade pip && \
+    pip install cffi && \
+    pip install --upgrade autopep8
 
 # configure GO
-RUN mkdir -p /root/GO/bin && \
-    mkdir -p /root/GO/pkg && \
-    mkdir -p /root/GO/src && \
-    echo 'export GOPATH=/root/GO' >> /root/.profile && \
-    echo 'export PATH=$GOPATH/bin:$PATH' >> /root/.profile
+RUN mkdir -p /root/bin && \
+    mkdir -p /root/pkg && \
+    mkdir -p /root/src && \
+    echo 'export GOPATH=/root' >> /root/.profile && \
+echo 'export PATH=$GOPATH/bin:$PATH' >> /root/.profile
