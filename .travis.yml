@@ -2,7 +2,7 @@ language: go
 
 dist: trusty
 
-sudo: false
+sudo: true
 
 branches:
   except:
@@ -22,6 +22,12 @@ matrix:
   allow_failures:
     - go: tip
 
+before_install:
+  - sudo apt-get update || true
+  - if [ -n "$GH_USER" ]; then git config --global github.user ${GH_USER}; fi;
+  - if [ -n "$GH_TOKEN" ]; then git config --global github.token ${GH_TOKEN}; fi;
+  - go get github.com/mattn/goveralls
+
 addons:
   apt:
     packages:
@@ -32,11 +38,6 @@ addons:
     - rpm
     - dh-make
     - dh-golang
-
-before_install:
-  - if [ -n "$GH_USER" ]; then git config --global github.user ${GH_USER}; fi;
-  - if [ -n "$GH_TOKEN" ]; then git config --global github.token ${GH_TOKEN}; fi;
-  - go get github.com/mattn/goveralls
 
 before_script:
   - make deps
