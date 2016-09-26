@@ -204,7 +204,6 @@ deps:
 # Install this application
 install: uninstall
 	mkdir -p $(PATHINSTBIN)
-	strip --strip-unneeded ./target/${BINPATH}*
 	cp -r ./target/${BINPATH}* $(PATHINSTBIN)
 	find $(PATHINSTBIN) -type d -exec chmod 755 {} \;
 	find $(PATHINSTBIN) -type f -exec chmod 755 {} \;
