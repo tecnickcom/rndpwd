@@ -130,7 +130,8 @@ all: help
 test:
 	@mkdir -p target/test
 	@mkdir -p target/report
-	GOPATH=$(GOPATH) go test -covermode=count -coverprofile=target/report/coverage.out -bench=. -race -v ./... | \
+	GOPATH=$(GOPATH) \
+	go test -covermode=count -coverprofile=target/report/coverage.out -bench=. -race -v ./... | \
 	tee >(PATH=$(GOPATH)/bin:$(PATH) go-junit-report > target/test/report.xml); \
 	test $${PIPESTATUS[0]} -eq 0
 
@@ -159,22 +160,22 @@ coverage:
 # Report cyclomatic complexity
 cyclo:
 	@mkdir -p target/report
-	GOPATH=$(GOPATH) gocyclo -avg ./src | tee target/report/cyclo.txt
+	GOPATH=$(GOPATH) gocyclo -avg ./src | tee target/report/cyclo.txt ; test $${PIPESTATUS[0]} -eq 0
 
 # Detect ineffectual assignments
 ineffassign:
 	@mkdir -p target/report
-	GOPATH=$(GOPATH) ineffassign ./src | tee target/report/ineffassign.txt
+	GOPATH=$(GOPATH) ineffassign ./src | tee target/report/ineffassign.txt ; test $${PIPESTATUS[0]} -eq 0
 
 # Detect commonly misspelled words in source files
 misspell:
 	@mkdir -p target/report
-	GOPATH=$(GOPATH) misspell -error ./src  | tee target/report/misspell.txt
+	GOPATH=$(GOPATH) misspell -error ./src  | tee target/report/misspell.txt ; test $${PIPESTATUS[0]} -eq 0
 
 # AST scanner
 astscan:
 	@mkdir -p target/report
-	GOPATH=$(GOPATH) gas --nosec=true ./... | tee target/report/astscan.txt
+	GOPATH=$(GOPATH) gas --nosec=true ./... | tee target/report/astscan.txt ; test $${PIPESTATUS[0]} -eq 0
 
 # Generate source docs
 docs:
@@ -248,7 +249,12 @@ nuke:
 
 # Compile the application
 build: deps
-	GOPATH=$(GOPATH) CGO_ENABLED=0 go build -ldflags '-extldflags "-static" -s -X main.ServiceVersion=${VERSION} -X main.ServiceRelease=${RELEASE}' -o ./target/${BINPATH}$(PROJECT) ./src
+	GOPATH=$(GOPATH) \
+	CGO_ENABLED=0 \
+	go build -ldflags '-extldflags "-static" -w -s -X main.ServiceVersion=${VERSION} -X main.ServiceRelease=${RELEASE}' -o ./target/${BINPATH}$(PROJECT) ./src
+ifneq (${UPXENABLED},)
+	upx --brute ./target/${BINPATH}$(PROJECT)
+endif
 
 # Cross-compile the application for several platforms
 crossbuild: deps
