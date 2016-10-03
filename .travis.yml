@@ -38,6 +38,7 @@ addons:
     - rpm
     - dh-make
     - dh-golang
+    - upx-ucl
 
 before_script:
   - make deps
