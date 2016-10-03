@@ -15,39 +15,36 @@
 # EXAMPLE USAGE:
 # ./dockerbuild.sh
 
-# build the environment
+# Build the base environment and keep it cached locally
 docker build -t tecnickcom/rndpwddev ./resources/DockerDev/
 
-# project path
+# Define the project root path
 PRJPATH=/root/GO/src/github.com/tecnickcom/rndpwd
 
-# generate a docker file on the fly
+# Generate a temporary Dockerfile to build and test the project
+# NOTE: The exit status of the RUN command is stored to be returned later,
+#       so in case of error we can continue without interrupting this script.
 cat > Dockerfile <<- EOM
 FROM tecnickcom/rndpwddev
 MAINTAINER info@tecnick.com
 RUN mkdir -p ${PRJPATH}
 ADD ./ ${PRJPATH}
 WORKDIR ${PRJPATH}
-RUN make deps && \
-make qa && \
-make rpm && \
-make deb && \
-make bz2 && \
-make crossbuild
+RUN make buildall || (echo \$? > target/buildall.exit)
 EOM
 
-# docker image name
-DOCKER_IMAGE_NAME="local/build"
+# Define the temporary Docker image name
+DOCKER_IMAGE_NAME="localbuild/rndpwd"
 
-# build the docker container and build the project
+# Build the Docker image
 docker build --no-cache -t ${DOCKER_IMAGE_NAME} .
 
-# start a container using the newly created docker image
+# Start a container using the newly created Docker image
 CONTAINER_ID=$(docker run -d ${DOCKER_IMAGE_NAME})
 
-# copy the artifact back to the host
+# Copy all build/test artifacts back to the host
 docker cp ${CONTAINER_ID}:"${PRJPATH}/target" ./
 
-# remove the container and image
+# Remove the temporary container and image
 docker rm -f ${CONTAINER_ID} || true
 docker rmi -f ${DOCKER_IMAGE_NAME} || true
