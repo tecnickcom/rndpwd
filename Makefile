@@ -372,7 +372,7 @@ dockertest:
 	@exit `grep -ic "false" target/project_docker_container.run`
 
 # build everything inside a Docker container
-dbuild: deps
+dbuild:
 	@mkdir -p target
 	./dockerbuild.sh
 
