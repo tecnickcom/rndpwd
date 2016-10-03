@@ -147,11 +147,11 @@ fmtcheck:
 
 # Check for syntax errors
 vet:
-	GOPATH=$(GOPATH) go vet ./...
+	GOPATH=$(GOPATH) go vet ./src
 
 # Check for style errors
 lint:
-	GOPATH=$(GOPATH) PATH=$(GOPATH)/bin:$(PATH) golint ./...
+	GOPATH=$(GOPATH) PATH=$(GOPATH)/bin:$(PATH) golint ./src
 
 # Generate the coverage report
 coverage:
@@ -356,10 +356,10 @@ dockertest:
 	docker inspect --format='{{(index (index .NetworkSettings.Ports "8500/tcp") 0).HostPort}}' `cat target/consul_docker_container.id` > target/consul_docker_container.port
 	curl -X PUT -d '{"serverMode":true,"serverAddress":":8765","charset":"0123456789abcdefghijklmnopqrstuvwxyz","length":17,"quantity": 7}' http://127.0.0.1:`cat target/consul_docker_container.port`/v1/kv/config/rndpwd
 	docker run --detach=true --net="host" --tty=true \
-	--env="NATSTEST_REMOTECONFIGPROVIDER=consul" \
-	--env="NATSTEST_REMOTECONFIGENDPOINT=127.0.0.1:`cat target/consul_docker_container.port`" \
-	--env="NATSTEST_REMOTECONFIGPATH=/config/rndpwd" \
-	--env="NATSTEST_REMOTECONFIGSECRETKEYRING=" \
+	--env="RNDPWD_REMOTECONFIGPROVIDER=consul" \
+	--env="RNDPWD_REMOTECONFIGENDPOINT=127.0.0.1:`cat target/consul_docker_container.port`" \
+	--env="RNDPWD_REMOTECONFIGPATH=/config/rndpwd" \
+	--env="RNDPWD_REMOTECONFIGSECRETKEYRING=" \
 	${OWNER}/${PROJECT}$(DOCKERSUFFIX):latest > target/project_docker_container.id || true
 	sleep 5
 	# check if the container is working
