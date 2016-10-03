@@ -94,7 +94,7 @@ docker rm $(docker ps -a -q)
 
 To delete all images
 ```
-    docker rmi $(docker images -q)
+docker rmi $(docker images -q)
 ```
 
 ## Running all tests
@@ -183,7 +183,7 @@ target/usr/bin/rndpwd --server --serverAddress=:8080
 This service logs the log messages in JSON format:
 
 ```
-{"URI":"/password?quantity=5\u0026length=13","code":200,"level":"info","msg":"request","program":"rndpwd","release":"0","time":"2016-08-01T19:19:23+01:00","timestamp":1470075563805131501,"type":"GET","version":"0.0.0"}
+{"URI":"/password?quantity=5\u0026length=13","code":200,"hostname":"myserver","level":"info","msg":"request","program":"rndpwd","release":"0","time":"2016-08-01T19:19:23+01:00","timestamp":1470075563805131501,"type":"GET","version":"0.0.0"}
 ```
 
 
