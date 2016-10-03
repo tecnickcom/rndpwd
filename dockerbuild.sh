@@ -16,16 +16,24 @@
 # ./dockerbuild.sh
 
 # build the environment
-docker build -t tecnickcom/crossdev ./resources/DockerDev/
+docker build -t tecnickcom/rndpwddev ./resources/DockerDev/
+
+# project path
+PRJPATH=/root/GO/src/github.com/tecnickcom/rndpwd
 
 # generate a docker file on the fly
 cat > Dockerfile <<- EOM
-FROM tecnickcom/crossdev
+FROM tecnickcom/rndpwddev
 MAINTAINER info@tecnick.com
-RUN mkdir -p /root/GO/src/github.com/tecnickcom/rndpwd
-ADD ./ /root/GO/src/github.com/tecnickcom/rndpwd
-WORKDIR /root/GO/src/github.com/tecnickcom/rndpwd
-RUN make deps && make qa && make rpm && make deb && make bz2 && make crossbuild
+RUN mkdir -p ${PRJPATH}
+ADD ./ ${PRJPATH}
+WORKDIR ${PRJPATH}
+RUN make deps && \
+make qa && \
+make rpm && \
+make deb && \
+make bz2 && \
+make crossbuild
 EOM
 
 # docker image name
@@ -38,7 +46,7 @@ docker build --no-cache -t ${DOCKER_IMAGE_NAME} .
 CONTAINER_ID=$(docker run -d ${DOCKER_IMAGE_NAME})
 
 # copy the artifact back to the host
-docker cp ${CONTAINER_ID}:"/root/GO/src/github.com/tecnickcom/rndpwd/target" ./
+docker cp ${CONTAINER_ID}:"${PRJPATH}/target" ./
 
 # remove the container and image
 docker rm -f ${CONTAINER_ID} || true
