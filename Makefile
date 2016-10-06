@@ -251,7 +251,7 @@ nuke:
 build: deps
 	GOPATH=$(GOPATH) \
 	CGO_ENABLED=0 \
-	go build -ldflags '-extldflags "-static" -w -s -X main.ServiceVersion=${VERSION} -X main.ServiceRelease=${RELEASE}' -o ./target/${BINPATH}$(PROJECT) ./src
+	go build -ldflags '-extldflags "-static" -w -s -X main.ProgramVersion=${VERSION} -X main.ProgramRelease=${RELEASE}' -o ./target/${BINPATH}$(PROJECT) ./src
 ifneq (${UPXENABLED},)
 	upx --brute ./target/${BINPATH}$(PROJECT)
 endif
@@ -263,7 +263,7 @@ crossbuild: deps
 		$(eval GOOS = $(word 1,$(subst /, ,$(TARGET)))) \
 		$(eval GOARCH = $(word 2,$(subst /, ,$(TARGET)))) \
 		$(shell which mkdir) -p target/$(TARGET) && \
-		GOOS=${GOOS} GOARCH=${GOARCH} GOPATH=$(GOPATH) go build -ldflags '-X main.ServiceVersion=${VERSION}' -o ./target/${GOOS}/${GOARCH}/$(PROJECT) ./src \
+		GOOS=${GOOS} GOARCH=${GOARCH} GOPATH=$(GOPATH) go build -ldflags '-X main.ProgramVersion=${VERSION}' -o ./target/${GOOS}/${GOARCH}/$(PROJECT) ./src \
 		|| echo $(TARGET) >> target/ccfailures.txt ; \
 	)
 ifneq ($(strip $(cat target/ccfailures.txt)),)
