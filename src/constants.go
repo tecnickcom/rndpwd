@@ -1,16 +1,16 @@
 package main
 
-// ServiceName defines this application name
-const ServiceName = "rndpwd"
+// ProgramName defines this application name
+const ProgramName = "rndpwd"
 
-// ServiceVersion set this application version
+// ProgramVersion set this application version
 // This is supposed to be automatically populated by the Makefile using the value from the VERSION file
-// (-ldflags '-X main.ServiceVersion=${VERSION}')
-var ServiceVersion = "0.0.0"
+// (-ldflags '-X main.ProgramVersion=${VERSION}')
+var ProgramVersion = "0.0.0"
 
-// ServiceRelease contains this program release number (or build number)
+// ProgramRelease contains this program release number (or build number)
 // This is automatically populated by the Makefile using the value from the RELEASE file
-var ServiceRelease = "0"
+var ProgramRelease = "0"
 
 // ValidCharset is a string containing the valid characters for a password
 const ValidCharset = "!#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcdefghijklmnopqrstuvwxyz{|}~"
@@ -29,11 +29,11 @@ const ServerAddress = ":8081"
 
 // ConfigPath list the paths where to look for configuration files (in order)
 var ConfigPath = [...]string{
-	"../resources/test/etc/" + ServiceName + "/",
+	"../resources/test/etc/" + ProgramName + "/",
 	"./",
 	"config/",
-	"$HOME/." + ServiceName + "/",
-	"/etc/" + ServiceName + "/",
+	"$HOME/." + ProgramName + "/",
+	"/etc/" + ProgramName + "/",
 }
 
 // LogLevel defines the default log level: NONE, EMERGENCY, ALERT, CRITICAL, ERROR, WARNING, NOTICE, INFO, DEBUG

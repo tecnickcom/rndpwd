@@ -48,14 +48,18 @@ func sendResponse(hw http.ResponseWriter, hr *http.Request, ps httprouter.Params
 	hw.Header().Set("Content-Type", "application/json")
 	hw.WriteHeader(code)
 
+	nowTime := time.Now().UTC()
+
 	response := Response{
-		Service: ServiceName,
-		Version: ServiceVersion + "-" + ServiceRelease,
-		Time:    time.Now().UTC(),
-		Status:  getStatus(code),
-		Code:    code,
-		Message: http.StatusText(code),
-		Data:    data,
+		Program:   ProgramName,
+		Version:   ProgramVersion,
+		Release:   ProgramRelease,
+		DateTime:  nowTime.Format(time.RFC3339),
+		Timestamp: nowTime.UnixNano(),
+		Status:    getStatus(code),
+		Code:      code,
+		Message:   http.StatusText(code),
+		Data:      data,
 	}
 
 	// log request

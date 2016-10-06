@@ -183,10 +183,8 @@ target/usr/bin/rndpwd --server --serverAddress=:8080
 This service logs the log messages in JSON format:
 
 ```
-{"URI":"/password?quantity=5\u0026length=13","code":200,"hostname":"myserver","level":"info","msg":"request","program":"rndpwd","release":"0","time":"2016-08-01T19:19:23+01:00","timestamp":1470075563805131501,"type":"GET","version":"0.0.0"}
+{"URI":"/password?quantity=5","code":200,"datetime":"2016-10-06T14:56:48Z","hostname":"myserver","level":"info","msg":"request","program":"rndpwd","release":"1","timestamp":1475765808084372773,"type":"GET","version":"3.4.0"}
 ```
-
-
 
 ## Developer(s) Contact
 

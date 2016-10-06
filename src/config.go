@@ -86,7 +86,7 @@ func getLocalConfigParams() (cfg params, rcfg remoteConfigParams) {
 
 	// support environment variables for the remote configuration
 	viper.AutomaticEnv()
-	viper.SetEnvPrefix(ServiceName) // will be uppercased automatically
+	viper.SetEnvPrefix(ProgramName) // will be uppercased automatically
 	viper.BindEnv("remoteConfigProvider")
 	viper.BindEnv("remoteConfigEndpoint")
 	viper.BindEnv("remoteConfigPath")
