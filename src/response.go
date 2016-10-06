@@ -1,9 +1,5 @@
 package main
 
-import (
-	"time"
-)
-
 // JSend status codes
 const (
 	StatusSuccess = "success"
@@ -13,13 +9,15 @@ const (
 
 // Response data format for HTTP
 type Response struct {
-	Service string      `json:"service"` // program name
-	Version string      `json:"version"` // program version
-	Time    time.Time   `json:"time"`    // timestamp
-	Status  string      `json:"status"`  // status code (error|fail|success)
-	Code    int         `json:"code"`    // HTTP status code
-	Message string      `json:"message"` // error or status message
-	Data    interface{} `json:"data"`    // data payload
+	Program   string      `json:"program"`   // Program name
+	Version   string      `json:"version"`   // Program version
+	Release   string      `json:"release"`   // Program release number
+	DateTime  string      `json:"datetime"`  // Human-readable date and time when the event occurred
+	Timestamp int64       `json:"timestamp"` // Machine-readable UTC timestamp in nanoseconds since EPOCH
+	Status    string      `json:"status"`    // Status code (error|fail|success)
+	Code      int         `json:"code"`      // HTTP status code
+	Message   string      `json:"message"`   // Error or status message
+	Data      interface{} `json:"data"`      // Data payload
 }
 
 // convert the HTTP status code into JSend status

@@ -21,8 +21,6 @@ func init() {
 }
 
 type logJSONFormatter struct {
-	// TimestampFormat sets the format used for marshaling timestamps.
-	TimestampFormat string
 }
 
 // Format is a custom JSON formatter for the logs
@@ -40,17 +38,14 @@ func (f *logJSONFormatter) Format(entry *log.Entry) ([]byte, error) {
 	}
 	prefixFieldClashes(data)
 
-	timestampFormat := f.TimestampFormat
-	if timestampFormat == "" {
-		timestampFormat = log.DefaultTimestampFormat
-	}
+	nowTime := time.Now().UTC()
 
 	data["hostname"], _ = os.Hostname()
-	data["program"] = ServiceName
-	data["version"] = ServiceVersion
-	data["release"] = ServiceRelease
-	data["time"] = entry.Time.Format(timestampFormat)
-	data["timestamp"] = time.Now().UTC().UnixNano()
+	data["program"] = ProgramName
+	data["version"] = ProgramVersion
+	data["release"] = ProgramRelease
+	data["datetime"] = nowTime.Format(time.RFC3339)
+	data["timestamp"] = nowTime.UnixNano()
 	data["msg"] = entry.Message
 	data["level"] = entry.Level.String()
 

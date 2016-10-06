@@ -52,7 +52,7 @@ func cli() (*cobra.Command, error) {
 		Short: "print this program version",
 		Long:  `print this program version`,
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Println(ServiceVersion)
+			fmt.Println(ProgramVersion)
 		},
 	}
 	rootCmd.AddCommand(versionCmd)
