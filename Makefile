@@ -389,7 +389,7 @@ buildall: deps qa rpm deb bz2 crossbuild
 dbuild:
 	@mkdir -p target
 	@echo 0 > target/buildall.exit
-	./dockerbuild.sh
+	VENDOR=$(VENDOR) PROJECT=$(PROJECT) ./dockerbuild.sh
 	@exit `cat target/buildall.exit`
 
 # upload linux packages to bintray
