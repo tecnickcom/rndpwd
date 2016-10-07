@@ -148,12 +148,12 @@ test:
 
 # Format the source code
 format:
-	@find ./ -type f -name "*.go" -exec gofmt -s -w {} \;
+	@find ./src -type f -name "*.go" -exec gofmt -s -w {} \;
 
 # Check if the source code has been formatted
 fmtcheck:
 	@mkdir -p target
-	@find ./ -type f -name "*.go" -exec gofmt -s -d {} \; | tee target/format.diff
+	@find ./src -type f -name "*.go" -exec gofmt -s -d {} \; | tee target/format.diff
 	@test ! -s target/format.diff || { echo "ERROR: the source code has not been formatted - please use 'make format' or 'gofmt'"; exit 1; }
 
 # Check for syntax errors
@@ -186,7 +186,7 @@ misspell:
 # AST scanner
 astscan:
 	@mkdir -p target/report
-	GOPATH=$(GOPATH) gas --nosec=true ./... | tee target/report/astscan.txt ; test $${PIPESTATUS[0]} -eq 0
+	GOPATH=$(GOPATH) gas --nosec=true ./src/*.go | tee target/report/astscan.txt ; test $${PIPESTATUS[0]} -eq 0
 
 # Generate source docs
 docs:
