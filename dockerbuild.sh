@@ -9,8 +9,7 @@
 # ------------------------------------------------------------------------------
 
 # NOTES:
-#
-# This script requires docker
+# This script requires Docker
 
 # EXAMPLE USAGE:
 # VENDOR=vendorname PROJECT=projectname ./dockerbuild.sh
