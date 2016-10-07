@@ -28,11 +28,23 @@ RELEASE=$(shell cat RELEASE)
 # Name of RPM or DEB package
 PKGNAME=${OWNER}-${PROJECT}
 
-# Go lang path
-GOPATH=$(shell readlink -f $(shell pwd)/../../../../)
+# Current directory
+CURRENTDIR=$(shell pwd)
+
+# GO lang path
+ifneq ($(GOPATH),)
+	ifeq ($(findstring $(GOPATH),$(CURRENTDIR)),)
+		# the defined GOPATH is not valid
+		GOPATH=
+	endif
+endif
+ifeq ($(GOPATH),)
+	# extract the GOPATH
+	GOPATH=$(firstword $(subst /src/, ,$(CURRENTDIR)))
+endif
 
 # Add the GO binary dir in the PATH
-export PATH := ${GOPATH}/bin:$(PATH)
+export PATH := $(GOPATH)/bin:$(PATH)
 
 # Path for binary files (where the executable files will be installed)
 BINPATH=usr/bin/
@@ -64,9 +76,6 @@ PATHINSTDOC=$(DESTDIR)/$(DOCPATH)
 # Installation path for man pages
 PATHINSTMAN=$(DESTDIR)/$(MANPATH)
 
-# Current directory
-CURRENTDIR=$(shell pwd)
-
 # RPM Packaging path (where RPMs will be stored)
 PATHRPMPKG=$(CURRENTDIR)/target/RPM
 
@@ -91,6 +100,7 @@ CONSUL_DOCKER_IMAGE_NAME=consul_$(OWNER)_$(PROJECT)$(DOCKERSUFFIX)
 help:
 	@echo ""
 	@echo "$(PROJECT) Makefile."
+	@echo "GOPATH=$(GOPATH)"
 	@echo "The following commands are available:"
 	@echo ""
 	@echo "    make qa          : Run all the tests and static analysis reports"
@@ -379,7 +389,7 @@ buildall: deps qa rpm deb bz2 crossbuild
 dbuild:
 	@mkdir -p target
 	@echo 0 > target/buildall.exit
-	./dockerbuild.sh
+	VENDOR=$(VENDOR) PROJECT=$(PROJECT) ./dockerbuild.sh
 	@exit `cat target/buildall.exit`
 
 # upload linux packages to bintray
