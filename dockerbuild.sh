@@ -12,11 +12,14 @@
 # This script requires Docker
 
 # EXAMPLE USAGE:
-# VENDOR=vendorname PROJECT=projectname ./dockerbuild.sh
+# VENDOR=vendorname PROJECT=projectname MAKETARGET=buildall ./dockerbuild.sh
 
 # Get vendor and project name
 : ${VENDOR:=vendor}
 : ${PROJECT:=project}
+
+# make target to execute
+: ${MAKETARGET:=buildall}
 
 # Name of the base development Docker image
 DOCKERDEV=${VENDOR}/dev_${PROJECT}
@@ -35,7 +38,7 @@ FROM ${DOCKERDEV}
 RUN mkdir -p ${PRJPATH}
 ADD ./ ${PRJPATH}
 WORKDIR ${PRJPATH}
-RUN make buildall || (echo \$? > target/buildall.exit)
+RUN make ${MAKETARGET} || (echo \$? > target/make.exit)
 EOM
 
 # Define the temporary Docker image name

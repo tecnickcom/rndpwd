@@ -45,6 +45,13 @@ To build the project inside a Docker container (requires Docker):
 make dbuild
 ```
 
+An arbitrary make target can be executed inside a Docker container by specifying the "MAKETARGET" parameter:
+```
+MAKETARGET='qa' make dbuild
+```
+The list of make targets can be obtained by typing ```make```
+
+
 The base Docker building environment is defined in the following Dockerfile:
 ```
 resources/DockerDev/Dockerfile
