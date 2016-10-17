@@ -9,7 +9,7 @@ import (
 )
 
 func TestCheckParams(t *testing.T) {
-	err := checkParams(&params{quantity: 1, length: 2, charset: "abc", logLevel: "info"})
+	err := checkParams(&params{quantity: 1, length: 2, charset: "abc", statsNetwork: "udp", statsFlushPeriod: 100, logLevel: "info"})
 	if err != nil {
 		t.Error(fmt.Errorf("No errors are expected"))
 	}

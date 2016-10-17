@@ -12,6 +12,7 @@ var startTime = time.Now()
 
 // return a list of available routes
 func index(rw http.ResponseWriter, hr *http.Request, ps httprouter.Params) {
+	stats.Increment("http.index.in")
 	type configInfo struct {
 		Charset  string `json:"charset"`  // characters to use to generate a password
 		Length   int    `json:"length"`   // length of each password (number of characters or bytes)
@@ -27,10 +28,12 @@ func index(rw http.ResponseWriter, hr *http.Request, ps httprouter.Params) {
 		Entries:  routes,
 		Config:   configInfo{Charset: appParams.charset, Length: appParams.length, Quantity: appParams.quantity},
 	})
+	stats.Increment("http.index.out")
 }
 
 // returns the status of the service
 func status(rw http.ResponseWriter, hr *http.Request, ps httprouter.Params) {
+	stats.Increment("http.status.in")
 	type info struct {
 		Duration float64 `json:"duration"` // elapsed time since last request in seconds
 		Message  string  `json:"message"`  // error message
@@ -41,11 +44,12 @@ func status(rw http.ResponseWriter, hr *http.Request, ps httprouter.Params) {
 		Duration: time.Since(startTime).Seconds(),
 		Message:  message,
 	})
+	stats.Increment("http.status.out")
 }
 
 // password returns the requested password
 func password(rw http.ResponseWriter, hr *http.Request, ps httprouter.Params) {
-
+	stats.Increment("http.password.in")
 	startTime = time.Now()
 
 	// decode URL parameters (if any)
@@ -80,4 +84,5 @@ func password(rw http.ResponseWriter, hr *http.Request, ps httprouter.Params) {
 		Passwords: getAllPassword(urlParams),
 		Duration:  time.Since(startTime).Seconds(),
 	})
+	stats.Increment("http.password.out")
 }

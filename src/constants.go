@@ -27,6 +27,19 @@ const ServerMode = false
 // ServerAddress is the default HTTP API URL (ip:port) or just (:port)
 const ServerAddress = ":8081"
 
+// StatsPrefix is the StatsD client's string prefix that will be used in every bucket name.
+const StatsPrefix = "rndpwd"
+
+// StatsNetwork is the network type used by the StatsD client (i.e. udp or tcp).
+const StatsNetwork = "udp"
+
+// StatsAddress is the network address of the StatsD daemon (ip:port) or just (:port)
+const StatsAddress = ":8125"
+
+// StatsFlushPeriod sets how often (in milliseconds) the StatsD client's buffer is flushed.
+// When 0 the buffer is only flushed when it is full.
+const StatsFlushPeriod = 100
+
 // ConfigPath list the paths where to look for configuration files (in order)
 var ConfigPath = [...]string{
 	"../resources/test/etc/" + ProgramName + "/",
