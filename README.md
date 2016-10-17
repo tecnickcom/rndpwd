@@ -128,9 +128,9 @@ Flags:
 -l, --length=16: Length of each password (number of characters or bytes)
 -q, --quantity=1: Number of passwords to generate
 -p, --statsPrefix="": StatsD bucket prefix name
--k, --statsNetwork"="udp": StatsD client network type (udp or tcp)
--m, --statsAddress"=":8125": StatsD daemon address (ip:port) or just (:port)
--r, --statsFlushPeriod"=100: StatsD client flush period in milliseconds
+-k, --statsNetwork="udp": StatsD client network type (udp or tcp)
+-m, --statsAddress=":8125": StatsD daemon address (ip:port) or just (:port)
+-r, --statsFlushPeriod=100: StatsD client flush period in milliseconds
 -o, --loglevel=INFO: Log level: panic, fatal, error, warning, info, debug
 ```
 
