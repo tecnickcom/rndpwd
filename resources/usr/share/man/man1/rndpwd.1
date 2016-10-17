@@ -20,9 +20,17 @@ print this program version
 .HP
 \fB\-l\fR, \fB\-\-length\fR=\fI16\fR: Length of each password (number of characters or bytes)
 .HP
-\fB\-c\fR, \fB\-\-charset=\fR"!#$%&()*+,\-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_abcdefghijklmnopqrstuvwxyz{|}~": Characters to use to generate a password
+\fB\-c\fR, \fB\-\-charset\fR="!#$%&()*+,\-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_abcdefghijklmnopqrstuvwxyz{|}~": Characters to use to generate a password
 .HP
 \fB\-q\fR, \fB\-\-quantity\fR=\fI10\fR: Number of passwords to generate
+.HP
+\fB\-p\fR, \fB\-\-statsPrefix\fR=\fI10\fR: StatsD bucket prefix name
+.HP
+\fB\-k\fR, \fB\-\-statsNetwork\fR=\fI10\fR: StatsD client network type (udp or tcp)
+.HP
+\fB\-m\fR, \fB\-\-statsAddress\fR=\fI10\fR: StatsD daemon address (ip:port) or just (:port)
+.HP
+\fB\-r\fR, \fB\-\-statsFlushPeriod\fR=\fI10\fR: StatsD client flush period in milliseconds
 .HP
 \fB\-o\fR, \fB\-\-logLevel\fR=\fI10\fR: Log level: panic, fatal, error, warning, info, debug
 .PP

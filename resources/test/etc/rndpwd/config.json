@@ -8,5 +8,9 @@
     "charset":"!#$%&()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ^_abcdefghijklmnopqrstuvwxyz~",
     "length": 32,
     "quantity": 10,
+    "statsPrefix": "rndpwd",
+    "statsNetwork": "udp",
+    "statsAddress": ":8125",
+    "statsFlushPeriod": 100,
     "logLevel" : "debug"
 }

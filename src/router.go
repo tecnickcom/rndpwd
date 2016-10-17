@@ -62,6 +62,9 @@ func sendResponse(hw http.ResponseWriter, hr *http.Request, ps httprouter.Params
 		Data:      data,
 	}
 
+	// count HTTP statuses
+	stats.Increment(fmt.Sprintf("httpstatus.%s", response.Status))
+
 	// log request
 	log.WithFields(log.Fields{
 		"type": hr.Method,
