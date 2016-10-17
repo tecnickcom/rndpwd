@@ -130,8 +130,8 @@ help:
 	@echo "    make docker      : Build a scratch docker container to run this service"
 	@echo "    make dockertest  : Test the newly built docker container"
 	@echo ""
-	@echo "    make buildall    : full build and test sequence"
-	@echo "    make dbuild      : build everything inside a Docker container"
+	@echo "    make buildall    : Full build and test sequence"
+	@echo "    make dbuild      : Build everything inside a Docker container"
 	@echo ""
 
 # Alias for help target
@@ -339,20 +339,20 @@ endif
 	echo "embedded-library $(BINPATH)$(PROJECT): libyaml" >> $(PATHDEBPKG)/$(PKGNAME)-$(VERSION)/debian/$(PKGNAME).lintian-overrides
 	cd $(PATHDEBPKG)/$(PKGNAME)-$(VERSION) && debuild -us -uc
 
-# build a compressed bz2 archive
+# Build a compressed bz2 archive
 bz2: build
 	rm -rf $(PATHBZ2PKG)
 	make install DESTDIR=$(PATHBZ2PKG)
 	tar -jcvf $(PATHBZ2PKG)/$(PKGNAME)-$(VERSION)-$(RELEASE).tbz2 -C $(PATHBZ2PKG) usr/ etc/
 
-# build a docker container to run this service
+# Build a docker container to run this service
 docker: build
 	rm -rf $(PATHDOCKERPKG)
 	make install DESTDIR=$(PATHDOCKERPKG)
 	cp resources/DockerDeploy/Dockerfile $(PATHDOCKERPKG)/
 	docker build --no-cache --tag=${OWNER}/${PROJECT}$(DOCKERSUFFIX):latest $(PATHDOCKERPKG)
 
-# check if the deployment container starts
+# Check if the deployment container starts
 dockertest:
 	# clean any previous container (if any)
 	rm -f target/old_docker_containers.id
@@ -382,10 +382,10 @@ dockertest:
 	docker rm `cat target/consul_docker_container.id` || true
 	@exit `grep -ic "false" target/project_docker_container.run`
 
-# full build and test sequence
+# Full build and test sequence
 buildall: deps qa rpm deb bz2 crossbuild
 
-# build everything inside a Docker container
+# Build everything inside a Docker container
 dbuild:
 	@mkdir -p target
 	@rm -rf target/*
@@ -393,7 +393,7 @@ dbuild:
 	VENDOR=$(VENDOR) PROJECT=$(PROJECT) MAKETARGET='$(MAKETARGET)' ./dockerbuild.sh
 	@exit `cat target/make.exit`
 
-# upload linux packages to bintray
+# Upload linux packages to bintray
 bintray: rpm deb
 	@curl -T target/RPM/RPMS/x86_64/tecnickcom-${PROJECT}-${VERSION}-${RELEASE}.x86_64.rpm -u${APIUSER}:${APIKEY} -H "X-Bintray-Package:${PROJECT}" -H "X-Bintray-Version:${VERSION}" -H "X-Bintray-Publish:1" -H "X-Bintray-Override:1" https://api.bintray.com/content/tecnickcom/rpm/tecnickcom-${PROJECT}-${VERSION}-${RELEASE}.x86_64.rpm
 	@curl -T target/DEB/tecnickcom-${PROJECT}_${VERSION}-${RELEASE}_amd64.deb -u${APIUSER}:${APIKEY} -H "X-Bintray-Package:${PROJECT}" -H "X-Bintray-Version:${VERSION}" -H "X-Bintray-Debian-Distribution:amd64" -H "X-Bintray-Debian-Component:main" -H "X-Bintray-Debian-Architecture:amd64" -H "X-Bintray-Publish:1" -H "X-Bintray-Override:1" https://api.bintray.com/content/tecnickcom/deb/tecnickcom-${PROJECT}_${VERSION}-${RELEASE}_amd64.deb
