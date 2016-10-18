@@ -26,7 +26,7 @@ var emptyParamCases = []string{
 
 func TestCliEmptyParamError(t *testing.T) {
 	for _, param := range emptyParamCases {
-		os.Args = []string{"natstest", param}
+		os.Args = []string{"rndpwd", param}
 		cmd, err := cli()
 		if err != nil {
 			t.Error(fmt.Errorf("An error wasn't expected: %v", err))
@@ -49,7 +49,7 @@ func TestCliEmptyParamError(t *testing.T) {
 }
 
 func TestCli(t *testing.T) {
-	os.Args = []string{"maastest", "--serverMode=true", "--serverAddress=:8765", "--statsPrefix=rndpwdtest", "--statsNetwork=udp", "--statsAddress=:8125", "--statsFlushPeriod=100"}
+	os.Args = []string{"rndpwd", "--serverMode=true", "--serverAddress=:8765", "--statsPrefix=rndpwdtest", "--statsNetwork=udp", "--statsAddress=:8125", "--statsFlushPeriod=100"}
 	cmd, err := cli()
 	if err != nil {
 		t.Error(fmt.Errorf("An error wasn't expected: %v", err))
