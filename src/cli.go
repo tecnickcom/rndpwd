@@ -38,10 +38,12 @@ func cli() (*cobra.Command, error) {
 		if err != nil {
 			return err
 		}
+
+		// initialize StatsD client (ignore errors)
+		initStats(appParams)
+		defer stats.Close()
+
 		if appParams.serverMode {
-			// initialize StatsD client (ignore errors)
-			initStats(appParams)
-			defer stats.Close()
 			// start the HTTP server
 			return startServer(appParams.serverAddress)
 		}
