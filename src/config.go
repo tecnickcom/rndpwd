@@ -175,12 +175,12 @@ func checkParams(prm *params) error {
 		if prm.serverAddress == "" {
 			return errors.New("The Server address is empty")
 		}
-		if prm.statsNetwork != "udp" && prm.statsNetwork != "tcp" {
-			return errors.New("The statsNetwork must be udp or tcp")
-		}
-		if prm.statsFlushPeriod < 0 {
-			return errors.New("The statsFlushPeriod must be >= 0")
-		}
+	}
+	if prm.statsNetwork != "udp" && prm.statsNetwork != "tcp" {
+		return errors.New("The statsNetwork must be udp or tcp")
+	}
+	if prm.statsFlushPeriod < 0 {
+		return errors.New("The statsFlushPeriod must be >= 0")
 	}
 	prm.charsetLength = len(prm.charset)
 	if prm.charsetLength < 2 || prm.charsetLength > 92 {
