@@ -171,10 +171,8 @@ func getRemoteConfigParams(cfg params, rcfg remoteConfigParams) (params, error) 
 
 // checkParams cheks if the configuration parameters are valid
 func checkParams(prm *params) error {
-	if prm.serverMode {
-		if prm.serverAddress == "" {
-			return errors.New("The Server address is empty")
-		}
+	if prm.serverMode && prm.serverAddress == "" {
+		return errors.New("The Server address is empty")
 	}
 	if prm.statsNetwork != "udp" && prm.statsNetwork != "tcp" {
 		return errors.New("The statsNetwork must be udp or tcp")

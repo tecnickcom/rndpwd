@@ -9,7 +9,14 @@ import (
 )
 
 func TestCheckParams(t *testing.T) {
-	err := checkParams(&params{quantity: 1, length: 2, charset: "abc", statsNetwork: "udp", statsFlushPeriod: 100, logLevel: "info"})
+	err := checkParams(&params{
+		quantity:         1,
+		length:           2,
+		charset:          "abc",
+		statsNetwork:     "udp",
+		statsFlushPeriod: 100,
+		logLevel:         "info",
+	})
 	if err != nil {
 		t.Error(fmt.Errorf("No errors are expected"))
 	}
@@ -42,7 +49,11 @@ func TestCheckParamsErrorsCharsetLength(t *testing.T) {
 		t.Error(fmt.Errorf("An error was expected because the charset length is < 2"))
 	}
 
-	err = checkParams(&params{quantity: 1, length: 2, charset: "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789"})
+	err = checkParams(&params{
+		quantity: 1,
+		length:   2,
+		charset:  "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789",
+	})
 	if err == nil {
 		t.Error(fmt.Errorf("An error was expected because the charset length is > 92"))
 	}
@@ -75,22 +86,22 @@ func TestGetConfigParams(t *testing.T) {
 		t.Error(fmt.Errorf("An error was not expected: %v", err))
 	}
 	if prm.serverMode {
-		t.Error(fmt.Errorf("Found different server mode than expected"))
+		t.Error(fmt.Errorf("Found different server mode than expected, found %v", prm.serverMode))
 	}
 	if prm.serverAddress != ":8080" {
-		t.Error(fmt.Errorf("Found different server address than expected"))
+		t.Error(fmt.Errorf("Found different server address than expected, found %s", prm.serverAddress))
 	}
 	if prm.quantity != 10 {
 		t.Error(fmt.Errorf("The expected quantity is 10, found %d", prm.quantity))
 	}
 	if prm.length != 32 {
-		t.Error(fmt.Errorf("The expected length is 32, found %d", prm.quantity))
+		t.Error(fmt.Errorf("The expected length is 32, found %d", prm.length))
 	}
 	if prm.charset != "!#$%&()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ^_abcdefghijklmnopqrstuvwxyz~" {
-		t.Error(fmt.Errorf("Fond different charset than expected"))
+		t.Error(fmt.Errorf("Fond different charset than expected, found %s", prm.charset))
 	}
 	if prm.logLevel != "debug" {
-		t.Error(fmt.Errorf("Found different logLevel than expected"))
+		t.Error(fmt.Errorf("Found different logLevel than expected, found %s", prm.logLevel))
 	}
 }
 
@@ -106,34 +117,34 @@ func TestGetLocalConfigParams(t *testing.T) {
 	prm, rprm := getLocalConfigParams()
 
 	if prm.serverMode {
-		t.Error(fmt.Errorf("Found different server mode than expected"))
+		t.Error(fmt.Errorf("Found different server mode than expected, found %v", prm.serverMode))
 	}
 	if prm.serverAddress != ":8080" {
-		t.Error(fmt.Errorf("Found different server address than expected"))
+		t.Error(fmt.Errorf("Found different server address than expected, found %s", prm.serverAddress))
 	}
 	if prm.quantity != 10 {
 		t.Error(fmt.Errorf("The expected quantity is 10, found %d", prm.quantity))
 	}
 	if prm.length != 32 {
-		t.Error(fmt.Errorf("The expected length is 32, found %d", prm.quantity))
+		t.Error(fmt.Errorf("The expected length is 32, found %d", prm.length))
 	}
 	if prm.charset != "!#$%&()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ^_abcdefghijklmnopqrstuvwxyz~" {
-		t.Error(fmt.Errorf("Fond different charset than expected"))
+		t.Error(fmt.Errorf("Fond different charset than expected, found %s", prm.charset))
 	}
 	if prm.logLevel != "debug" {
-		t.Error(fmt.Errorf("Found different logLevel than expected"))
+		t.Error(fmt.Errorf("Found different logLevel than expected, found %s", prm.logLevel))
 	}
 	if rprm.remoteConfigProvider != "consul" {
-		t.Error(fmt.Errorf("Found different remoteConfigProvider than expected"))
+		t.Error(fmt.Errorf("Found different remoteConfigProvider than expected, found %s", rprm.remoteConfigProvider))
 	}
 	if rprm.remoteConfigEndpoint != "127.0.0.1:98765" {
-		t.Error(fmt.Errorf("Found different remoteConfigEndpoint than expected"))
+		t.Error(fmt.Errorf("Found different remoteConfigEndpoint than expected, found %s", rprm.remoteConfigEndpoint))
 	}
 	if rprm.remoteConfigPath != "/config/rndpwd" {
-		t.Error(fmt.Errorf("Found different remoteConfigPath than expected"))
+		t.Error(fmt.Errorf("Found different remoteConfigPath than expected, found %s", rprm.remoteConfigPath))
 	}
 	if rprm.remoteConfigSecretKeyring != "" {
-		t.Error(fmt.Errorf("Found different remoteConfigSecretKeyring than expected"))
+		t.Error(fmt.Errorf("Found different remoteConfigSecretKeyring than expected, found %s", rprm.remoteConfigSecretKeyring))
 	}
 
 	_, err := getRemoteConfigParams(prm, rprm)
@@ -179,22 +190,22 @@ func TestGetConfigParamsRemote(t *testing.T) {
 		t.Error(fmt.Errorf("An error was not expected: %v", err))
 	}
 	if prm.serverMode {
-		t.Error(fmt.Errorf("Found different server mode than expected"))
+		t.Error(fmt.Errorf("Found different server mode than expected, found %v", prm.serverMode))
 	}
 	if prm.serverAddress != ":8123" {
-		t.Error(fmt.Errorf("Found different server address than expected"))
+		t.Error(fmt.Errorf("Found different server address than expected, found %s", prm.serverAddress))
 	}
 	if prm.quantity != 10 {
 		t.Error(fmt.Errorf("The expected quantity is 11, found %d", prm.quantity))
 	}
 	if prm.length != 32 {
-		t.Error(fmt.Errorf("The expected length is 33, found %d", prm.quantity))
+		t.Error(fmt.Errorf("The expected length is 33, found %d", prm.length))
 	}
 	if prm.charset != "0123456789abcdefghijklmnopqrstuvwxyz" {
-		t.Error(fmt.Errorf("Fond different charset than expected"))
+		t.Error(fmt.Errorf("Found different charset than expected, found %s", prm.charset))
 	}
 	if prm.logLevel != "debug" {
-		t.Error(fmt.Errorf("Found different logLevel than expected"))
+		t.Error(fmt.Errorf("Found different logLevel than expected, found %s", prm.logLevel))
 	}
 }
 
