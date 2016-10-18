@@ -5,11 +5,12 @@ const ProgramName = "rndpwd"
 
 // ProgramVersion set this application version
 // This is supposed to be automatically populated by the Makefile using the value from the VERSION file
-// (-ldflags '-X main.ProgramVersion=${VERSION}')
+// (-ldflags '-X main.ProgramVersion=$(shell cat VERSION)')
 var ProgramVersion = "0.0.0"
 
 // ProgramRelease contains this program release number (or build number)
 // This is automatically populated by the Makefile using the value from the RELEASE file
+// (-ldflags '-X main.ProgramRelease=$(shell cat RELEASE)')
 var ProgramRelease = "0"
 
 // ValidCharset is a string containing the valid characters for a password
