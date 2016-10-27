@@ -10,11 +10,14 @@
 # Use bash as shell (Note: Ubuntu now uses dash which doesn't support PIPESTATUS).
 SHELL=/bin/bash
 
+# CVS path (path to the parent dir containing the project)
+CVSPATH=github.com/tecnickcom
+
 # Project owner
 OWNER=tecnickcom
 
 # Project vendor
-VENDOR=${OWNER}
+VENDOR=tecnickcom
 
 # Project name
 PROJECT=rndpwd
@@ -139,10 +142,10 @@ all: help
 
 # Run the unit tests
 test:
+test:
 	@mkdir -p target/test
-	@mkdir -p target/report
 	GOPATH=$(GOPATH) \
-	go test -covermode=count -coverprofile=target/report/coverage.out -bench=. -race -v ./... | \
+	go test -covermode=atomic -bench=. -race -v ./src | \
 	tee >(PATH=$(GOPATH)/bin:$(PATH) go-junit-report > target/test/report.xml); \
 	test $${PIPESTATUS[0]} -eq 0
 
@@ -166,7 +169,11 @@ lint:
 
 # Generate the coverage report
 coverage:
-	GOPATH=$(GOPATH) go tool cover -html=target/report/coverage.out -o target/report/coverage.html
+	@mkdir -p target/report
+	GOPATH=$(GOPATH) \
+	go test -covermode=count -coverprofile=target/report/coverage.out -v ./src && \
+	GOPATH=$(GOPATH) \
+	go tool cover -html=target/report/coverage.out -o target/report/coverage.html
 
 # Report cyclomatic complexity
 cyclo:
@@ -192,8 +199,8 @@ astscan:
 docs:
 	@mkdir -p target/docs
 	nohup sh -c 'GOPATH=$(GOPATH) godoc -http=127.0.0.1:6060' > target/godoc_server.log 2>&1 &
-	wget --directory-prefix=target/docs/ --execute robots=off --retry-connrefused --recursive --no-parent --adjust-extension --page-requisites --convert-links http://127.0.0.1:6060/pkg/github.com/${OWNER}/${PROJECT}/ ; kill -9 `lsof -ti :6060`
-	@echo '<html><head><meta http-equiv="refresh" content="0;./127.0.0.1:6060/pkg/github.com/'${OWNER}'/'${PROJECT}'/index.html"/></head><a href="./127.0.0.1:6060/pkg/github.com/'${OWNER}'/'${PROJECT}'/index.html">'${PKGNAME}' Documentation ...</a></html>' > target/docs/index.html
+	wget --directory-prefix=target/docs/ --execute robots=off --retry-connrefused --recursive --no-parent --adjust-extension --page-requisites --convert-links http://127.0.0.1:6060/pkg/github.com/${VENDOR}/${PROJECT}/ ; kill -9 `lsof -ti :6060`
+	@echo '<html><head><meta http-equiv="refresh" content="0;./127.0.0.1:6060/pkg/'${CVSPATH}'/'${PROJECT}'/index.html"/></head><a href="./127.0.0.1:6060/pkg/'${CVSPATH}'/'${PROJECT}'/index.html">'${PKGNAME}' Documentation ...</a></html>' > target/docs/index.html
 
 # Alias to run targets: fmtcheck test vet lint coverage
 qa: fmtcheck test vet lint coverage cyclo ineffassign misspell astscan
@@ -390,7 +397,7 @@ dbuild:
 	@mkdir -p target
 	@rm -rf target/*
 	@echo 0 > target/make.exit
-	VENDOR=$(VENDOR) PROJECT=$(PROJECT) MAKETARGET='$(MAKETARGET)' ./dockerbuild.sh
+	CVSPATH=$(CVSPATH) VENDOR=$(VENDOR) PROJECT=$(PROJECT) MAKETARGET='$(MAKETARGET)' ./dockerbuild.sh
 	@exit `cat target/make.exit`
 
 # Upload linux packages to bintray

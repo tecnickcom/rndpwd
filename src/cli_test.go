@@ -74,7 +74,9 @@ func TestCli(t *testing.T) {
 
 	// use two separate channels for server and client testing
 	var wg sync.WaitGroup
-	wg.Add(2)
+
+	// SERVER
+	wg.Add(1)
 	go func() {
 		defer wg.Done()
 		// start server
@@ -82,11 +84,15 @@ func TestCli(t *testing.T) {
 			t.Error(fmt.Errorf("An error was not expected: %v", err))
 		}
 	}()
+
+	// wait for the http server connection to start
+	time.Sleep(1000 * time.Millisecond)
+
+	// CLIENT
+	wg.Add(1)
 	go func() {
 		defer wg.Done()
-
-		// wait for the http server connection to start
-		time.Sleep(1000 * time.Millisecond)
+		defer wg.Done() // End the server process
 
 		// test index
 		testEndPoint(t, "GET", "/", "", 200)
@@ -104,9 +110,8 @@ func TestCli(t *testing.T) {
 		testEndPoint(t, "GET", "/password?quantity=0", "", 400)
 		testEndPoint(t, "GET", "/password?length=0", "", 400)
 		testEndPoint(t, "GET", "/password?charset=", "", 400)
-
-		wg.Done()
 	}()
+
 	wg.Wait()
 }
 
