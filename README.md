@@ -122,6 +122,8 @@ rndpwd [flags]
 
 Flags:
 
+-d, -- configDir    : Configuration directory to be added on top of the search list
+-o, --loglevel=INFO : Log level: panic, fatal, error, warning, info, debug
 -s, --serverMode: Set this to true to start an HTTP RESTful API server
 -u, --serverAddress="8080": HTTP API address for server mode (ip:port) or just (:port)
 -c, --charset="!#.0123456789@ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz": Characters to use to generate a password
@@ -131,7 +133,6 @@ Flags:
 -k, --statsNetwork="udp": StatsD client network type (udp or tcp)
 -m, --statsAddress=":8125": StatsD daemon address (ip:port) or just (:port)
 -r, --statsFlushPeriod=100: StatsD client flush period in milliseconds
--o, --loglevel=INFO: Log level: panic, fatal, error, warning, info, debug
 ```
 
 ## Configuration

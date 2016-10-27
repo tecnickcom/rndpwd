@@ -14,6 +14,10 @@ version
 print this program version
 .SS "Flags:"
 .HP
+\fB\-d\fR, \fB\-\-configDir\fR=\fI10\fR: Configuration directory to be added on top of the search list
+.HP
+\fB\-o\fR, \fB\-\-logLevel\fR=\fI10\fR: Log level: panic, fatal, error, warning, info, debug
+.HP
 \fB\-s\fR, \fB\-\-serverMode\fR=\fI10\fR: Set this to true to start a RESTful API server mode
 .HP
 \fB\-u\fR, \fB\-\-serverAddress\fR=\fI10\fR: HTTP API address for server mode (ip:port) or just (:port)
@@ -31,8 +35,6 @@ print this program version
 \fB\-m\fR, \fB\-\-statsAddress\fR=\fI10\fR: StatsD daemon address (ip:port) or just (:port)
 .HP
 \fB\-r\fR, \fB\-\-statsFlushPeriod\fR=\fI10\fR: StatsD client flush period in milliseconds
-.HP
-\fB\-o\fR, \fB\-\-logLevel\fR=\fI10\fR: Log level: panic, fatal, error, warning, info, debug
 .PP
 Use "rndpwd [command] \fB\-\-help\fR" for more information about a command.
 .SH AUTHOR

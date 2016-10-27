@@ -37,6 +37,7 @@ type params struct {
 	logLevel         string // Log level: NONE, EMERGENCY, ALERT, CRITICAL, ERROR, WARNING, NOTICE, INFO, DEBUG
 }
 
+var configDir string
 var appParams = new(params)
 
 // getConfigParams returns the configuration parameters
@@ -73,6 +74,10 @@ func getLocalConfigParams() (cfg params, rcfg remoteConfigParams) {
 
 	// configuration type
 	viper.SetConfigType("json")
+
+	if configDir != "" {
+		viper.AddConfigPath(configDir)
+	}
 
 	// add local configuration paths
 	for _, cpath := range ConfigPath {
