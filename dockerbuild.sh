@@ -12,9 +12,10 @@
 # This script requires Docker
 
 # EXAMPLE USAGE:
-# VENDOR=vendorname PROJECT=projectname MAKETARGET=buildall ./dockerbuild.sh
+# CVSPATH=project VENDOR=vendorname PROJECT=projectname MAKETARGET=buildall ./dockerbuild.sh
 
 # Get vendor and project name
+: ${CVSPATH:=project}
 : ${VENDOR:=vendor}
 : ${PROJECT:=project}
 
@@ -28,7 +29,7 @@ DOCKERDEV=${VENDOR}/dev_${PROJECT}
 docker build -t ${DOCKERDEV} ./resources/DockerDev/
 
 # Define the project root path
-PRJPATH=/root/src/${PROJECT}
+PRJPATH=/root/src/${CVSPATH}/${PROJECT}
 
 # Generate a temporary Dockerfile to build and test the project
 # NOTE: The exit status of the RUN command is stored to be returned later,
