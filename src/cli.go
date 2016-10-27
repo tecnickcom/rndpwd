@@ -2,11 +2,17 @@ package main
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 )
 
 func cli() (*cobra.Command, error) {
+
+	// parse the configDir argument
+	cfgCmd := new(cobra.Command)
+	cfgCmd.Flags().StringVarP(&configDir, "configDir", "d", "", "Configuration directory to be added on top of the search list")
+	cfgCmd.ParseFlags(os.Args)
 
 	// configuration parameters
 	cfgParams, err := getConfigParams()
@@ -14,10 +20,12 @@ func cli() (*cobra.Command, error) {
 		return nil, err
 	}
 
-	// set the root command
+	// overwrites the configuration parameters with the ones specified in the command line (if any)
+	appParams = &cfgParams
 	rootCmd := new(cobra.Command)
 
-	// overwrites the configuration parameters with the ones specified in the command line (if any)
+	rootCmd.Flags().StringVarP(&configDir, "configDir", "d", "", "Configuration directory to be added on top of the search list")
+	rootCmd.Flags().StringVarP(&appParams.logLevel, "logLevel", "o", cfgParams.logLevel, "Log level: panic, fatal, error, warning, info, debug")
 	rootCmd.Flags().BoolVarP(&appParams.serverMode, "serverMode", "s", cfgParams.serverMode, "Start an HTTP RESTful API server")
 	rootCmd.Flags().StringVarP(&appParams.serverAddress, "serverAddress", "u", cfgParams.serverAddress, "HTTP API address (ip:port) or just (:port)")
 	rootCmd.Flags().StringVarP(&appParams.charset, "charset", "c", cfgParams.charset, "Characters to use to generate a password")
@@ -27,7 +35,6 @@ func cli() (*cobra.Command, error) {
 	rootCmd.Flags().StringVarP(&appParams.statsNetwork, "statsNetwork", "k", cfgParams.statsNetwork, "StatsD client network type (udp or tcp)")
 	rootCmd.Flags().StringVarP(&appParams.statsAddress, "statsAddress", "m", cfgParams.statsAddress, "StatsD daemon address (ip:port) or just (:port)")
 	rootCmd.Flags().IntVarP(&appParams.statsFlushPeriod, "statsFlushPeriod", "r", cfgParams.statsFlushPeriod, "StatsD client flush period in milliseconds")
-	rootCmd.Flags().StringVarP(&appParams.logLevel, "logLevel", "o", cfgParams.logLevel, "Log level: panic, fatal, error, warning, info, debug")
 
 	rootCmd.Use = "rndpwd"
 	rootCmd.Short = "Command-line and Web-service Random Password Generator"
