@@ -15,7 +15,7 @@ func getNewPassword(appParams *params) string {
 	defer stats.NewTiming().Send("getNewPassword.time")
 
 	password := make([]byte, appParams.length)
-	// #nosec
+
 	chars := []byte(appParams.charset)
 	maxValue := new(big.Int).SetInt64(int64(appParams.charsetLength))
 
