@@ -50,7 +50,8 @@ func TestCliEmptyParamError(t *testing.T) {
 
 func TestCli(t *testing.T) {
 	os.Args = []string{
-		"rndpwd",
+		ProgramName,
+		"--configDir=resources/test/etc/rndpwd",
 		"--serverMode=true",
 		"--serverAddress=:8765",
 		"--statsPrefix=rndpwdtest",

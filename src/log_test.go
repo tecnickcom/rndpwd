@@ -12,13 +12,10 @@ func TestPrefixFieldClashes(t *testing.T) {
 	}).Info("testing log")
 }
 
-/*
-func BenchmarkLog(b *testing.B) {
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		log.WithFields(log.Fields{
-			"id": i,
-		}).Info("benchmark log")
-	}
+func TestLogJsonError(t *testing.T) {
+	oldJsonMarshal := jsonMarshal
+	defer func() { jsonMarshal = oldJsonMarshal }()
+	jsonMarshal = mockJsonMarshalError
+
+	log.Info("testing log error")
 }
-*/

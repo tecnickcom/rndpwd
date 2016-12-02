@@ -31,10 +31,10 @@ func cli() (*cobra.Command, error) {
 	rootCmd.Flags().StringVarP(&appParams.charset, "charset", "c", cfgParams.charset, "Characters to use to generate a password")
 	rootCmd.Flags().IntVarP(&appParams.length, "length", "l", cfgParams.length, "Length of each password (number of characters or bytes)")
 	rootCmd.Flags().IntVarP(&appParams.quantity, "quantity", "q", cfgParams.quantity, "Number of passwords to generate")
-	rootCmd.Flags().StringVarP(&appParams.statsPrefix, "statsPrefix", "p", cfgParams.statsPrefix, "StatsD bucket prefix name")
-	rootCmd.Flags().StringVarP(&appParams.statsNetwork, "statsNetwork", "k", cfgParams.statsNetwork, "StatsD client network type (udp or tcp)")
-	rootCmd.Flags().StringVarP(&appParams.statsAddress, "statsAddress", "m", cfgParams.statsAddress, "StatsD daemon address (ip:port) or just (:port)")
-	rootCmd.Flags().IntVarP(&appParams.statsFlushPeriod, "statsFlushPeriod", "r", cfgParams.statsFlushPeriod, "StatsD client flush period in milliseconds")
+	rootCmd.Flags().StringVarP(&appParams.stats.Prefix, "statsPrefix", "p", cfgParams.stats.Prefix, "StatsD bucket prefix name")
+	rootCmd.Flags().StringVarP(&appParams.stats.Network, "statsNetwork", "k", cfgParams.stats.Network, "StatsD client network type (udp or tcp)")
+	rootCmd.Flags().StringVarP(&appParams.stats.Address, "statsAddress", "m", cfgParams.stats.Address, "StatsD daemon address (ip:port) or just (:port)")
+	rootCmd.Flags().IntVarP(&appParams.stats.FlushPeriod, "statsFlushPeriod", "r", cfgParams.stats.FlushPeriod, "StatsD client flush period in milliseconds")
 
 	rootCmd.Use = "rndpwd"
 	rootCmd.Short = "Command-line and Web-service Random Password Generator"
@@ -47,7 +47,7 @@ func cli() (*cobra.Command, error) {
 		}
 
 		// initialize StatsD client (ignore errors)
-		initStats(appParams)
+		initStats(appParams.stats)
 		defer stats.Close()
 
 		if appParams.serverMode {

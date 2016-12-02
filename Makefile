@@ -309,7 +309,7 @@ rpm:
 	-bb resources/rpm/rpm.spec
 
 # Build the DEB package for Debian-like Linux distributions
-deb: build
+deb:
 	rm -rf $(PATHDEBPKG)
 	make install DESTDIR=$(PATHDEBPKG)/$(PKGNAME)-$(VERSION)
 	rm -f $(PATHDEBPKG)/$(PKGNAME)-$(VERSION)/$(DOCPATH)LICENSE
@@ -346,13 +346,13 @@ endif
 	cd $(PATHDEBPKG)/$(PKGNAME)-$(VERSION) && debuild -us -uc
 
 # Build a compressed bz2 archive
-bz2: build
+bz2:
 	rm -rf $(PATHBZ2PKG)
 	make install DESTDIR=$(PATHBZ2PKG)
 	tar -jcvf $(PATHBZ2PKG)/$(PKGNAME)-$(VERSION)-$(RELEASE).tbz2 -C $(PATHBZ2PKG) usr/ etc/
 
 # Build a docker container to run this service
-docker: build
+docker:
 	rm -rf $(PATHDOCKERPKG)
 	make install DESTDIR=$(PATHDOCKERPKG)
 	cp resources/DockerDeploy/Dockerfile $(PATHDOCKERPKG)/
@@ -389,7 +389,8 @@ dockertest:
 	@exit `grep -ic "false" target/project_docker_container.run`
 
 # Full build and test sequence
-buildall: deps qa rpm deb bz2 crossbuild
+#buildall: deps qa rpm deb bz2 crossbuild
+buildall: deps qa rpm deb
 
 # Build everything inside a Docker container
 dbuild:
@@ -400,6 +401,6 @@ dbuild:
 	@exit `cat target/make.exit`
 
 # Upload linux packages to bintray
-bintray: rpm deb
+bintray:
 	@curl -T target/RPM/RPMS/x86_64/tecnickcom-${PROJECT}-${VERSION}-${RELEASE}.x86_64.rpm -u${APIUSER}:${APIKEY} -H "X-Bintray-Package:${PROJECT}" -H "X-Bintray-Version:${VERSION}" -H "X-Bintray-Publish:1" -H "X-Bintray-Override:1" https://api.bintray.com/content/tecnickcom/rpm/tecnickcom-${PROJECT}-${VERSION}-${RELEASE}.x86_64.rpm
 	@curl -T target/DEB/tecnickcom-${PROJECT}_${VERSION}-${RELEASE}_amd64.deb -u${APIUSER}:${APIKEY} -H "X-Bintray-Package:${PROJECT}" -H "X-Bintray-Version:${VERSION}" -H "X-Bintray-Debian-Distribution:amd64" -H "X-Bintray-Debian-Component:main" -H "X-Bintray-Debian-Architecture:amd64" -H "X-Bintray-Publish:1" -H "X-Bintray-Override:1" https://api.bintray.com/content/tecnickcom/deb/tecnickcom-${PROJECT}_${VERSION}-${RELEASE}_amd64.deb
