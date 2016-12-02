@@ -13,14 +13,38 @@ var ProgramVersion = "0.0.0"
 // (-ldflags '-X main.ProgramRelease=$(shell cat RELEASE)')
 var ProgramRelease = "0"
 
+// ConfigPath list the paths where to look for configuration files (in order)
+var ConfigPath = [...]string{
+	"../resources/test/etc/" + ProgramName + "/",
+	"./",
+	"config/",
+	"$HOME/." + ProgramName + "/",
+	"/etc/" + ProgramName + "/",
+}
+
+// RemoteConfigProvider is the remote configuration source ("consul", "etcd")
+const RemoteConfigProvider = ""
+
+// RemoteConfigEndpoint is the remote configuration URL (ip:port)
+const RemoteConfigEndpoint = ""
+
+// RemoteConfigPath is the remote configuration path where to search fo the configuration file ("/config/rndpwd")
+const RemoteConfigPath = ""
+
+// RemoteConfigSecretKeyring is the path to the openpgp secret keyring used to decript the remote configuration data ("/etc/rndpwd/configkey.gpg")
+const RemoteConfigSecretKeyring = "" // nosec
+
+// LogLevel defines the default log level: NONE, EMERGENCY, ALERT, CRITICAL, ERROR, WARNING, NOTICE, INFO, DEBUG
+const LogLevel = "INFO"
+
 // ValidCharset is a string containing the valid characters for a password
 const ValidCharset = "!#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcdefghijklmnopqrstuvwxyz{|}~"
 
 // NumPasswords is the default number of passwords to return
-const NumPasswords = 10
+const NumPasswords = 10 // nosec
 
 // PasswordLength is the default length of each password (number of characters or bytes)
-const PasswordLength = 16
+const PasswordLength = 16 // nosec
 
 // ServerMode is the default HTTP server mode (on = true)
 const ServerMode = false
@@ -40,27 +64,3 @@ const StatsAddress = ":8125"
 // StatsFlushPeriod sets how often (in milliseconds) the StatsD client's buffer is flushed.
 // When 0 the buffer is only flushed when it is full.
 const StatsFlushPeriod = 100
-
-// ConfigPath list the paths where to look for configuration files (in order)
-var ConfigPath = [...]string{
-	"../resources/test/etc/" + ProgramName + "/",
-	"./",
-	"config/",
-	"$HOME/." + ProgramName + "/",
-	"/etc/" + ProgramName + "/",
-}
-
-// LogLevel defines the default log level: NONE, EMERGENCY, ALERT, CRITICAL, ERROR, WARNING, NOTICE, INFO, DEBUG
-const LogLevel = "info"
-
-// RemoteConfigProvider is the remote configuration source ("consul", "etcd")
-const RemoteConfigProvider = ""
-
-// RemoteConfigEndpoint is the remote configuration URL (ip:port)
-const RemoteConfigEndpoint = ""
-
-// RemoteConfigPath is the remote configuration path where to search fo the configuration file ("/config/rndpwd")
-const RemoteConfigPath = ""
-
-// RemoteConfigSecretKeyring is the path to the openpgp secret keyring used to decript the remote configuration data ("/etc/rndpwd/configkey.gpg")
-const RemoteConfigSecretKeyring = "" // nosec

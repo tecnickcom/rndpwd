@@ -24,17 +24,14 @@ func (rcfg remoteConfigParams) isEmpty() bool {
 
 // params struct contains the application parameters
 type params struct {
-	serverMode       bool   // set this to true to start a RESTful API server mode
-	serverAddress    string // HTTP API address for server mode (ip:port) or just (:port)
-	charset          string // characters to use to generate a password
-	charsetLength    int    // length of the character set in bytes
-	length           int    // length of each password (number of characters or bytes)
-	quantity         int    // number of passwords to generate
-	statsPrefix      string // StatsD client's string prefix that will be used in every bucket name.
-	statsNetwork     string // network type used by the StatsD client (i.e. udp or tcp).
-	statsAddress     string // network address of the StatsD daemon (ip:port) or just (:port)
-	statsFlushPeriod int    // How often (in milliseconds) the StatsD client's buffer is flushed.
-	logLevel         string // Log level: NONE, EMERGENCY, ALERT, CRITICAL, ERROR, WARNING, NOTICE, INFO, DEBUG
+	logLevel      string     // Log level: NONE, EMERGENCY, ALERT, CRITICAL, ERROR, WARNING, NOTICE, INFO, DEBUG
+	serverMode    bool       // set this to true to start a RESTful API server mode
+	serverAddress string     // HTTP API address for server mode (ip:port) or just (:port)
+	charset       string     // characters to use to generate a password
+	charsetLength int        // length of the character set in bytes
+	length        int        // length of each password (number of characters or bytes)
+	quantity      int        // number of passwords to generate
+	stats         *StatsData // StatsD configuration, it is used to collect usage metrics
 }
 
 var configDir string
@@ -57,17 +54,19 @@ func getLocalConfigParams() (cfg params, rcfg remoteConfigParams) {
 	viper.SetDefault("remoteConfigPath", RemoteConfigPath)
 	viper.SetDefault("remoteConfigSecretKeyring", RemoteConfigSecretKeyring)
 
+	viper.SetDefault("logLevel", LogLevel)
+
 	// set default configuration values
 	viper.SetDefault("serverMode", ServerMode)
 	viper.SetDefault("serverAddress", ServerAddress)
 	viper.SetDefault("charset", ValidCharset)
 	viper.SetDefault("length", PasswordLength)
 	viper.SetDefault("quantity", NumPasswords)
-	viper.SetDefault("statsPrefix", StatsPrefix)
-	viper.SetDefault("statsNetwork", StatsNetwork)
-	viper.SetDefault("statsAddress", StatsAddress)
-	viper.SetDefault("statsFlushPeriod", StatsFlushPeriod)
-	viper.SetDefault("logLevel", LogLevel)
+
+	viper.SetDefault("stats.prefix", StatsPrefix)
+	viper.SetDefault("stats.network", StatsNetwork)
+	viper.SetDefault("stats.address", StatsAddress)
+	viper.SetDefault("stats.flush_period", StatsFlushPeriod)
 
 	// name of the configuration file without extension
 	viper.SetConfigName("config")
@@ -88,18 +87,7 @@ func getLocalConfigParams() (cfg params, rcfg remoteConfigParams) {
 	viper.ReadInConfig()
 
 	// read configuration parameters
-	cfg = params{
-		serverMode:       viper.GetBool("serverMode"),
-		serverAddress:    viper.GetString("serverAddress"),
-		charset:          viper.GetString("charset"),
-		length:           viper.GetInt("length"),
-		quantity:         viper.GetInt("quantity"),
-		statsPrefix:      viper.GetString("statsPrefix"),
-		statsNetwork:     viper.GetString("statsNetwork"),
-		statsAddress:     viper.GetString("statsAddress"),
-		statsFlushPeriod: viper.GetInt("statsFlushPeriod"),
-		logLevel:         viper.GetString("logLevel"),
-	}
+	cfg = getViperParams()
 
 	// support environment variables for the remote configuration
 	viper.AutomaticEnv()
@@ -128,17 +116,19 @@ func getRemoteConfigParams(cfg params, rcfg remoteConfigParams) (params, error) 
 
 	viper.Reset()
 
+	viper.SetDefault("logLevel", cfg.logLevel)
+
 	// set default configuration values
 	viper.SetDefault("serverMode", cfg.serverMode)
 	viper.SetDefault("serverAddress", cfg.serverAddress)
 	viper.SetDefault("charset", cfg.charset)
 	viper.SetDefault("length", cfg.length)
 	viper.SetDefault("quantity", cfg.quantity)
-	viper.SetDefault("statsPrefix", cfg.statsPrefix)
-	viper.SetDefault("statsNetwork", cfg.statsNetwork)
-	viper.SetDefault("statsAddress", cfg.statsAddress)
-	viper.SetDefault("statsFlushPeriod", cfg.statsFlushPeriod)
-	viper.SetDefault("logLevel", cfg.logLevel)
+
+	viper.SetDefault("stats.prefix", cfg.stats.Prefix)
+	viper.SetDefault("stats.network", cfg.stats.Network)
+	viper.SetDefault("stats.address", cfg.stats.Address)
+	viper.SetDefault("stats.flush_period", cfg.stats.FlushPeriod)
 
 	// configuration type
 	viper.SetConfigType("json")
@@ -159,32 +149,59 @@ func getRemoteConfigParams(cfg params, rcfg remoteConfigParams) (params, error) 
 	}
 
 	// read configuration parameters
+	return getViperParams(), nil
+}
+
+// getViperParams reads the config params via Viper
+func getViperParams() params {
 	return params{
-			serverMode:       viper.GetBool("serverMode"),
-			serverAddress:    viper.GetString("serverAddress"),
-			charset:          viper.GetString("charset"),
-			length:           viper.GetInt("length"),
-			quantity:         viper.GetInt("quantity"),
-			statsPrefix:      viper.GetString("statsPrefix"),
-			statsNetwork:     viper.GetString("statsNetwork"),
-			statsAddress:     viper.GetString("statsAddress"),
-			statsFlushPeriod: viper.GetInt("statsFlushPeriod"),
-			logLevel:         viper.GetString("logLevel"),
+		logLevel: viper.GetString("logLevel"),
+
+		serverMode:    viper.GetBool("serverMode"),
+		serverAddress: viper.GetString("serverAddress"),
+		charset:       viper.GetString("charset"),
+		length:        viper.GetInt("length"),
+		quantity:      viper.GetInt("quantity"),
+
+		stats: &StatsData{
+			Prefix:      viper.GetString("stats.prefix"),
+			Network:     viper.GetString("stats.network"),
+			Address:     viper.GetString("stats.address"),
+			FlushPeriod: viper.GetInt("stats.flush_period"),
 		},
-		nil
+	}
 }
 
 // checkParams cheks if the configuration parameters are valid
 func checkParams(prm *params) error {
+
+	// Log
+	log.SetLevel(0)
+	if prm.logLevel == "" {
+		return errors.New("logLevel is empty")
+	}
+	levelCode, err := log.ParseLevel(prm.logLevel)
+	if err != nil {
+		return errors.New("The logLevel must be one of the following: panic, fatal, error, warning, info, debug")
+	}
+	log.SetLevel(levelCode)
+
+	// Server
 	if prm.serverMode && prm.serverAddress == "" {
 		return errors.New("The Server address is empty")
 	}
-	if prm.statsNetwork != "udp" && prm.statsNetwork != "tcp" {
-		return errors.New("The statsNetwork must be udp or tcp")
+
+	// StatsD
+	if prm.stats.Prefix == "" {
+		return errors.New("The stats Prefix is empty")
 	}
-	if prm.statsFlushPeriod < 0 {
-		return errors.New("The statsFlushPeriod must be >= 0")
+	if prm.stats.Network != "udp" && prm.stats.Network != "tcp" {
+		return errors.New("The stats Network must be udp or tcp")
 	}
+	if prm.stats.FlushPeriod < 0 {
+		return errors.New("The stats FlushPeriod must be >= 0")
+	}
+
 	prm.charsetLength = len(prm.charset)
 	if prm.charsetLength < 2 || prm.charsetLength > 92 {
 		return errors.New("The charset string must contain between 2 and 92 ASCII characters")
@@ -199,13 +216,6 @@ func checkParams(prm *params) error {
 	if prm.quantity < 1 {
 		return errors.New("The number of passwords to generate must be at least 1")
 	}
-	if prm.logLevel == "" {
-		return errors.New("logLevel is empty")
-	}
-	levelCode, err := log.ParseLevel(prm.logLevel)
-	if err != nil {
-		return errors.New("The logLevel must be one of the following: panic, fatal, error, warning, info, debug")
-	}
-	log.SetLevel(levelCode)
+
 	return nil
 }
