@@ -45,6 +45,8 @@ before_script:
 
 script:
   - make qa
+  - make rpm
+  - make deb
 
 after_failure:
   - cat ./target/test/report.xml
