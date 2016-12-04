@@ -32,7 +32,7 @@ const RemoteConfigEndpoint = ""
 const RemoteConfigPath = ""
 
 // RemoteConfigSecretKeyring is the path to the openpgp secret keyring used to decript the remote configuration data ("/etc/rndpwd/configkey.gpg")
-const RemoteConfigSecretKeyring = "" // nosec
+const RemoteConfigSecretKeyring = "" // #nosec
 
 // LogLevel defines the default log level: NONE, EMERGENCY, ALERT, CRITICAL, ERROR, WARNING, NOTICE, INFO, DEBUG
 const LogLevel = "INFO"
@@ -41,10 +41,10 @@ const LogLevel = "INFO"
 const ValidCharset = "!#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcdefghijklmnopqrstuvwxyz{|}~"
 
 // NumPasswords is the default number of passwords to return
-const NumPasswords = 10 // nosec
+const NumPasswords = 10 // #nosec
 
 // PasswordLength is the default length of each password (number of characters or bytes)
-const PasswordLength = 16 // nosec
+const PasswordLength = 16 // #nosec
 
 // ServerMode is the default HTTP server mode (on = true)
 const ServerMode = false
