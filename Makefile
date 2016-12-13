@@ -371,7 +371,7 @@ dockertest:
 	sleep 5
 	# push Consul configuration
 	docker inspect --format='{{(index (index .NetworkSettings.Ports "8500/tcp") 0).HostPort}}' `cat target/consul_docker_container.id` > target/consul_docker_container.port
-	curl -X PUT -d '{"serverMode":true,"serverAddress":":8765","charset":"0123456789abcdefghijklmnopqrstuvwxyz","length":17,"quantity": 7}' http://127.0.0.1:`cat target/consul_docker_container.port`/v1/kv/config/rndpwd
+	curl -X PUT -d '{"remoteConfigProvider" : "","remoteConfigEndpoint" : "","remoteConfigPath" : "","remoteConfigSecretKeyring" : "","serverMode": true,"serverAddress": ":8080","log": {"level": "DEBUG","network": "","address": ""},"stats": {"prefix": "~#PROJECT#~","network": "udp","address": ":8125","flush_period": 100},"charset":"!#$%&()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ^_abcdefghijklmnopqrstuvwxyz~","length": 32,"quantity": 10}' http://127.0.0.1:`cat target/consul_docker_container.port`/v1/kv/config/rndpwd
 	docker run --detach=true --net="host" --tty=true \
 	--env="RNDPWD_REMOTECONFIGPROVIDER=consul" \
 	--env="RNDPWD_REMOTECONFIGENDPOINT=127.0.0.1:`cat target/consul_docker_container.port`" \

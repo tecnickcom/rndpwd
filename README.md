@@ -123,7 +123,7 @@ rndpwd [flags]
 Flags:
 
 -d, --configDir             : Configuration directory to be added on top of the search list
--o, --loglevel=INFO         : Log level: panic, fatal, error, warning, info, debug
+-o, --loglevel=INFO         : Log level: EMERGENCY, ALERT, CRITICAL, ERROR, WARNING, NOTICE, INFO, DEBUG
 -s, --serverMode            : Set this to true to start an HTTP RESTful API server
 -u, --serverAddress="8080"  : HTTP API address for server mode (ip:port) or just (:port)
 -c, --charset="!#.0123456789@ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz": Characters to use to generate a password

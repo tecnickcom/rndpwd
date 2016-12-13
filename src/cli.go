@@ -25,7 +25,7 @@ func cli() (*cobra.Command, error) {
 	rootCmd := new(cobra.Command)
 
 	rootCmd.Flags().StringVarP(&configDir, "configDir", "d", "", "Configuration directory to be added on top of the search list")
-	rootCmd.Flags().StringVarP(&appParams.logLevel, "logLevel", "o", cfgParams.logLevel, "Log level: panic, fatal, error, warning, info, debug")
+	rootCmd.Flags().StringVarP(&appParams.log.Level, "logLevel", "o", cfgParams.log.Level, "Log level: EMERGENCY, ALERT, CRITICAL, ERROR, WARNING, NOTICE, INFO, DEBUG")
 	rootCmd.Flags().BoolVarP(&appParams.serverMode, "serverMode", "s", cfgParams.serverMode, "Start an HTTP RESTful API server")
 	rootCmd.Flags().StringVarP(&appParams.serverAddress, "serverAddress", "u", cfgParams.serverAddress, "HTTP API address (ip:port) or just (:port)")
 	rootCmd.Flags().StringVarP(&appParams.charset, "charset", "c", cfgParams.charset, "Characters to use to generate a password")

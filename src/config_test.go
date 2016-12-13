@@ -10,7 +10,11 @@ import (
 
 func getTestCfgParams() *params {
 	return &params{
-		logLevel: "INFO",
+		log: &LogData{
+			Level:   "INFO",
+			Network: "",
+			Address: "",
+		},
 		quantity: 1,
 		length:   2,
 		charset:  "abc",
@@ -32,7 +36,7 @@ func TestCheckParams(t *testing.T) {
 
 func TestCheckParamsErrorsLogLevelEmpty(t *testing.T) {
 	cfg := getTestCfgParams()
-	cfg.logLevel = ""
+	cfg.log.Level = ""
 	err := checkParams(cfg)
 	if err == nil {
 		t.Error(fmt.Errorf("An error was expected because logLevel is empty"))
@@ -41,7 +45,7 @@ func TestCheckParamsErrorsLogLevelEmpty(t *testing.T) {
 
 func TestCheckParamsErrorsLogLevelInvalid(t *testing.T) {
 	cfg := getTestCfgParams()
-	cfg.logLevel = "INVALID"
+	cfg.log.Level = "INVALID"
 	err := checkParams(cfg)
 	if err == nil {
 		t.Error(fmt.Errorf("An error was expected because logLevel is invalid"))
@@ -150,8 +154,8 @@ func TestGetConfigParams(t *testing.T) {
 	if prm.charset != "!#$%&()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ^_abcdefghijklmnopqrstuvwxyz~" {
 		t.Error(fmt.Errorf("Fond different charset than expected, found %s", prm.charset))
 	}
-	if prm.logLevel != "debug" {
-		t.Error(fmt.Errorf("Found different logLevel than expected, found %s", prm.logLevel))
+	if prm.log.Level != "DEBUG" {
+		t.Error(fmt.Errorf("Found different logLevel than expected, found %s", prm.log.Level))
 	}
 }
 
@@ -181,8 +185,8 @@ func TestGetLocalConfigParams(t *testing.T) {
 	if prm.charset != "!#$%&()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ^_abcdefghijklmnopqrstuvwxyz~" {
 		t.Error(fmt.Errorf("Fond different charset than expected, found %s", prm.charset))
 	}
-	if prm.logLevel != "debug" {
-		t.Error(fmt.Errorf("Found different logLevel than expected, found %s", prm.logLevel))
+	if prm.log.Level != "DEBUG" {
+		t.Error(fmt.Errorf("Found different logLevel than expected, found %s", prm.log.Level))
 	}
 	if rprm.remoteConfigProvider != "consul" {
 		t.Error(fmt.Errorf("Found different remoteConfigProvider than expected, found %s", rprm.remoteConfigProvider))
@@ -254,8 +258,8 @@ func TestGetConfigParamsRemote(t *testing.T) {
 	if prm.charset != "0123456789abcdefghijklmnopqrstuvwxyz" {
 		t.Error(fmt.Errorf("Found different charset than expected, found %s", prm.charset))
 	}
-	if prm.logLevel != "debug" {
-		t.Error(fmt.Errorf("Found different logLevel than expected, found %s", prm.logLevel))
+	if prm.log.Level != "DEBUG" {
+		t.Error(fmt.Errorf("Found different logLevel than expected, found %s", prm.log.Level))
 	}
 }
 

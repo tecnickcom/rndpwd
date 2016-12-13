@@ -4,7 +4,6 @@ import (
 	"errors"
 	"regexp"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/spf13/viper"
 	_ "github.com/spf13/viper/remote"
 )
@@ -24,7 +23,7 @@ func (rcfg remoteConfigParams) isEmpty() bool {
 
 // params struct contains the application parameters
 type params struct {
-	logLevel      string     // Log level: NONE, EMERGENCY, ALERT, CRITICAL, ERROR, WARNING, NOTICE, INFO, DEBUG
+	log           *LogData   // Log level: EMERGENCY, ALERT, CRITICAL, ERROR, WARNING, NOTICE, INFO, DEBUG.
 	serverMode    bool       // set this to true to start a RESTful API server mode
 	serverAddress string     // HTTP API address for server mode (ip:port) or just (:port)
 	charset       string     // characters to use to generate a password
@@ -54,7 +53,9 @@ func getLocalConfigParams() (cfg params, rcfg remoteConfigParams) {
 	viper.SetDefault("remoteConfigPath", RemoteConfigPath)
 	viper.SetDefault("remoteConfigSecretKeyring", RemoteConfigSecretKeyring)
 
-	viper.SetDefault("logLevel", LogLevel)
+	viper.SetDefault("log.level", LogLevel)
+	viper.SetDefault("log.network", LogNetwork)
+	viper.SetDefault("log.address", LogAddress)
 
 	// set default configuration values
 	viper.SetDefault("serverMode", ServerMode)
@@ -116,7 +117,9 @@ func getRemoteConfigParams(cfg params, rcfg remoteConfigParams) (params, error) 
 
 	viper.Reset()
 
-	viper.SetDefault("logLevel", cfg.logLevel)
+	viper.SetDefault("log.level", cfg.log.Level)
+	viper.SetDefault("log.network", cfg.log.Network)
+	viper.SetDefault("log.address", cfg.log.Address)
 
 	// set default configuration values
 	viper.SetDefault("serverMode", cfg.serverMode)
@@ -155,7 +158,12 @@ func getRemoteConfigParams(cfg params, rcfg remoteConfigParams) (params, error) 
 // getViperParams reads the config params via Viper
 func getViperParams() params {
 	return params{
-		logLevel: viper.GetString("logLevel"),
+
+		log: &LogData{
+			Level:   viper.GetString("log.level"),
+			Network: viper.GetString("log.network"),
+			Address: viper.GetString("log.address"),
+		},
 
 		serverMode:    viper.GetBool("serverMode"),
 		serverAddress: viper.GetString("serverAddress"),
@@ -174,17 +182,14 @@ func getViperParams() params {
 
 // checkParams cheks if the configuration parameters are valid
 func checkParams(prm *params) error {
-
 	// Log
-	log.SetLevel(0)
-	if prm.logLevel == "" {
-		return errors.New("logLevel is empty")
+	if prm.log.Level == "" {
+		return errors.New("log Level is empty")
 	}
-	levelCode, err := log.ParseLevel(prm.logLevel)
+	err := prm.log.setLog()
 	if err != nil {
-		return errors.New("The logLevel must be one of the following: panic, fatal, error, warning, info, debug")
+		return err
 	}
-	log.SetLevel(levelCode)
 
 	// Server
 	if prm.serverMode && prm.serverAddress == "" {

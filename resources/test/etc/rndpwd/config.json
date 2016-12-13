@@ -1,16 +1,22 @@
 {
-    "remoteConfigProvider" : "",
-    "remoteConfigEndpoint" : "",
-    "remoteConfigPath" : "",
-    "remoteConfigSecretKeyring" : "",
-    "serverMode": false,
-    "serverAddress": ":8080",
-    "charset":"!#$%&()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ^_abcdefghijklmnopqrstuvwxyz~",
-    "length": 32,
-    "quantity": 10,
-    "statsPrefix": "rndpwd",
-    "statsNetwork": "udp",
-    "statsAddress": ":8125",
-    "statsFlushPeriod": 100,
-    "logLevel" : "debug"
+  "remoteConfigProvider" : "",
+  "remoteConfigEndpoint" : "",
+  "remoteConfigPath" : "",
+  "remoteConfigSecretKeyring" : "",
+  "serverMode": false,
+  "serverAddress": ":8080",
+  "log": {
+    "level": "DEBUG",
+    "network": "",
+    "address": ""
+  },
+  "stats": {
+    "prefix": "~#PROJECT#~",
+    "network": "udp",
+    "address": ":8125",
+    "flush_period": 100
+  },
+  "charset":"!#$%&()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ^_abcdefghijklmnopqrstuvwxyz~",
+  "length": 32,
+  "quantity": 10
 }
