@@ -11,7 +11,12 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/julienschmidt/httprouter"
+	"github.com/spf13/cobra"
 )
+
+var stopServerChannel chan bool
 
 var emptyParamCases = []string{
 	"--serverMode=true --serverAddress=",
@@ -47,7 +52,6 @@ func TestCliEmptyParamError(t *testing.T) {
 		}
 	}
 }
-
 func TestCli(t *testing.T) {
 	os.Args = []string{
 		ProgramName,
@@ -73,47 +77,97 @@ func TestCli(t *testing.T) {
 	defer func() { os.Stderr = old }()
 	os.Stderr = nil
 
-	// use two separate channels for server and client testing
-	var wg sync.WaitGroup
+	// add an endpoint to test the panic handler
+	routes = append(routes,
+		Route{
+			"GET",
+			"/panic",
+			triggerPanic,
+			"TRIGGER PANIC",
+		})
+	defer func() { routes = routes[:len(routes)-1] }()
 
-	// SERVER
-	wg.Add(1)
+	// use two separate channels for server and client testing
+	var twg sync.WaitGroup
+	startTestServer(t, cmd, &twg)
+	startTestClient(t)
+	twg.Wait()
+}
+
+func startTestServer(t *testing.T, cmd *cobra.Command, twg *sync.WaitGroup) {
+
+	stopServerChannel = make(chan bool)
+
+	twg.Add(1)
 	go func() {
-		defer wg.Done()
-		// start server
-		if err := cmd.Execute(); err != nil {
-			t.Error(fmt.Errorf("An error was not expected: %v", err))
+		defer twg.Done()
+
+		chp := make(chan error, 1)
+		go func() {
+			chp <- cmd.Execute()
+		}()
+
+		stopped := false
+		for {
+			select {
+			case err, ok := <-chp:
+				if ok && !stopped && err != nil {
+					stopServerChannel <- true
+					t.Error(fmt.Errorf("An error was not expected: %v", err))
+				}
+				return
+			case <-stopServerChannel:
+				stopped = true
+				if serverListener != nil {
+					serverListener.Close() // this triggers the cmd.Execute error
+				} else {
+					return
+				}
+			}
 		}
 	}()
 
-	// wait for the http server connection to start
-	time.Sleep(1000 * time.Millisecond)
+	// wait for the server to start
+	time.Sleep(500 * time.Millisecond)
+}
 
-	// CLIENT
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		defer wg.Done() // End the server process
+func startTestClient(t *testing.T) {
 
-		// test index
-		testEndPoint(t, "GET", "/", "", 200)
-		// test 404
-		testEndPoint(t, "GET", "/INVALID", "", 404)
-		// test 405
-		testEndPoint(t, "DELETE", "/", "", 405)
-		// test valid endpoints
-		testEndPoint(t, "GET", "/status", "", 200)
-		testEndPoint(t, "GET", "/password", "", 200)
-		testEndPoint(t, "GET", "/password?quantity=5", "", 200)
-		testEndPoint(t, "GET", "/password?quantity=5&length=13", "", 200)
-		testEndPoint(t, "GET", "/password?quantity=5&length=13&charset=abcdef0123456789", "", 200)
-		// test query errors
-		testEndPoint(t, "GET", "/password?quantity=0", "", 400)
-		testEndPoint(t, "GET", "/password?length=0", "", 400)
-		testEndPoint(t, "GET", "/password?charset=", "", 400)
-	}()
+	// check if the server is running
+	select {
+	case stop, ok := <-stopServerChannel:
+		if ok && stop {
+			return
+		}
+	default:
+		break
+	}
 
-	wg.Wait()
+	defer func() { stopServerChannel <- true }()
+
+	testEndPoint(t, "GET", "/", "", 200)
+	testEndPoint(t, "GET", "/status", "", 200)
+
+	// error conditions
+	testEndPoint(t, "GET", "/INVALID", "", 404) // NotFound
+	testEndPoint(t, "DELETE", "/", "", 405)     // MethodNotAllowed
+	testEndPoint(t, "GET", "/panic", "", 500)   // PanicHandler
+
+	// valid endpoints
+	testEndPoint(t, "GET", "/password", "", 200)
+	testEndPoint(t, "GET", "/password?quantity=5", "", 200)
+	testEndPoint(t, "GET", "/password?quantity=5&length=13", "", 200)
+	testEndPoint(t, "GET", "/password?quantity=5&length=13&charset=abcdef0123456789", "", 200)
+
+	// test query errors
+	testEndPoint(t, "GET", "/password?quantity=0", "", 400)
+	testEndPoint(t, "GET", "/password?length=0", "", 400)
+	testEndPoint(t, "GET", "/password?charset=", "", 400)
+}
+
+// triggerPanic triggers a Panic
+func triggerPanic(rw http.ResponseWriter, hr *http.Request, ps httprouter.Params) {
+	panic("TEST PANIC")
 }
 
 // return true if the input is a JSON

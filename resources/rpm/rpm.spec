@@ -21,7 +21,7 @@ Provides:  %{gh_project} = %{version}
 Command-line Random Password Generator
 
 %build
-(cd %{_current_directory} && make build)
+#(cd %{_current_directory} && make build)
 
 %install
 rm -rf $RPM_BUILD_ROOT

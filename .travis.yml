@@ -39,13 +39,8 @@ addons:
     - dh-golang
     - upx-ucl
 
-before_script:
-  - make deps
-
 script:
-  - make qa
-  - make rpm
-  - make deb
+  - make buildall
 
 after_failure:
   - cat ./target/test/report.xml

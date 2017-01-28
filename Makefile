@@ -371,7 +371,7 @@ dockertest:
 	sleep 5
 	# push Consul configuration
 	docker inspect --format='{{(index (index .NetworkSettings.Ports "8500/tcp") 0).HostPort}}' `cat target/consul_docker_container.id` > target/consul_docker_container.port
-	curl -X PUT -d '{"remoteConfigProvider" : "","remoteConfigEndpoint" : "","remoteConfigPath" : "","remoteConfigSecretKeyring" : "","serverMode": true,"serverAddress": ":8080","log": {"level": "DEBUG","network": "","address": ""},"stats": {"prefix": "~#PROJECT#~","network": "udp","address": ":8125","flush_period": 100},"charset":"!#$%&()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ^_abcdefghijklmnopqrstuvwxyz~","length": 32,"quantity": 10}' http://127.0.0.1:`cat target/consul_docker_container.port`/v1/kv/config/rndpwd
+	curl --request PUT --data @resources/test/etc/rndpwd/consul_config.json http://127.0.0.1:`cat target/consul_docker_container.port`/v1/kv/config/rndpwd
 	docker run --detach=true --net="host" --tty=true \
 	--env="RNDPWD_REMOTECONFIGPROVIDER=consul" \
 	--env="RNDPWD_REMOTECONFIGENDPOINT=127.0.0.1:`cat target/consul_docker_container.port`" \
@@ -383,6 +383,7 @@ dockertest:
 	docker inspect -f {{.State.Running}} `cat target/project_docker_container.id` > target/project_docker_container.run || true
 	# remove containers
 	docker stop `cat target/project_docker_container.id` || true
+	docker logs `cat target/project_docker_container.id` || true
 	docker rm `cat target/project_docker_container.id` || true
 	docker stop `cat target/consul_docker_container.id` || true
 	docker rm `cat target/consul_docker_container.id` || true
@@ -390,7 +391,7 @@ dockertest:
 
 # Full build and test sequence
 #buildall: deps qa rpm deb bz2 crossbuild
-buildall: deps qa rpm deb
+buildall: build qa rpm deb
 
 # Build everything inside a Docker container
 dbuild:
