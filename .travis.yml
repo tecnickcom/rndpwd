@@ -14,7 +14,7 @@ branches:
     - develop
 
 go:
-  - 1.7
+  - 1.8
   - tip
 
 matrix:
@@ -46,5 +46,5 @@ after_failure:
   - cat ./target/test/report.xml
 
 after_success:
-  - if [ "$TRAVIS_GO_VERSION" = "1.7" ]; then $HOME/gopath/bin/goveralls -covermode=count -coverprofile=target/report/coverage.out -service=travis-ci; fi;
-  - if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_GO_VERSION" = "1.7" ] && [ -n "$BT_APIUSER" ]; then make bintray APIUSER=${BT_APIUSER} APIKEY=${BT_APIKEY}; fi;
+  - if [ "$TRAVIS_GO_VERSION" = "1.8" ]; then $HOME/gopath/bin/goveralls -covermode=count -coverprofile=target/report/coverage.out -service=travis-ci; fi;
+  - if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_GO_VERSION" = "1.8" ] && [ -n "$BT_APIUSER" ]; then make bintray APIUSER=${BT_APIUSER} APIKEY=${BT_APIKEY}; fi;
