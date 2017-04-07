@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"reflect"
 	"sync"
+	"syscall"
 	"testing"
 	"time"
 
@@ -16,25 +16,19 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var stopServerChannel chan bool
+var stopTestServerChan chan bool
 
-var emptyParamCases = []string{
-	"--serverMode=true --serverAddress=",
-	"--charset=",
-	"--length=",
-	"--quantity=",
+var badParamCases = []string{
 	"--logLevel=",
 	"--logLevel=INVALID",
-	"--statsNetwork=INVALID",
-	"--statsFlushPeriod=-1",
 }
 
-func TestCliEmptyParamError(t *testing.T) {
-	for _, param := range emptyParamCases {
-		os.Args = []string{"rndpwd", param}
+func TestCliBadParamError(t *testing.T) {
+	for _, param := range badParamCases {
+		os.Args = []string{ProgramName, param}
 		cmd, err := cli()
 		if err != nil {
-			t.Error(fmt.Errorf("An error wasn't expected: %v", err))
+			t.Error(fmt.Errorf("Unexpected error: %v", err))
 			return
 		}
 		if cmdtype := reflect.TypeOf(cmd).String(); cmdtype != "*cobra.Command" {
@@ -52,20 +46,24 @@ func TestCliEmptyParamError(t *testing.T) {
 		}
 	}
 }
+
+func TestWrongParamError(t *testing.T) {
+	os.Args = []string{ProgramName, "--unknown"}
+	_, err := cli()
+	if err == nil {
+		t.Error(fmt.Errorf("An error was expected"))
+		return
+	}
+}
+
 func TestCli(t *testing.T) {
 	os.Args = []string{
 		ProgramName,
-		"--configDir=resources/test/etc/rndpwd",
-		"--serverMode=true",
-		"--serverAddress=:8765",
-		"--statsPrefix=rndpwdtest",
-		"--statsNetwork=udp",
-		"--statsAddress=:8125",
-		"--statsFlushPeriod=100",
+		"--configDir=wrong/path",
 	}
 	cmd, err := cli()
 	if err != nil {
-		t.Error(fmt.Errorf("An error wasn't expected: %v", err))
+		t.Error(fmt.Errorf("Unexpected error: %v", err))
 		return
 	}
 	if cmdtype := reflect.TypeOf(cmd).String(); cmdtype != "*cobra.Command" {
@@ -96,7 +94,7 @@ func TestCli(t *testing.T) {
 
 func startTestServer(t *testing.T, cmd *cobra.Command, twg *sync.WaitGroup) {
 
-	stopServerChannel = make(chan bool)
+	stopTestServerChan = make(chan bool)
 
 	twg.Add(1)
 	go func() {
@@ -112,16 +110,15 @@ func startTestServer(t *testing.T, cmd *cobra.Command, twg *sync.WaitGroup) {
 			select {
 			case err, ok := <-chp:
 				if ok && !stopped && err != nil {
-					stopServerChannel <- true
+					stopTestServerChan <- true
 					t.Error(fmt.Errorf("An error was not expected: %v", err))
 				}
 				return
-			case <-stopServerChannel:
+			case <-stopTestServerChan:
 				stopped = true
-				if server != nil {
-					server.Close() // this triggers the cmd.Execute error
-				} else {
-					return
+				err := syscall.Kill(syscall.Getpid(), syscall.SIGINT)
+				if err != nil {
+					t.Error(fmt.Errorf("An error was not expected: %v", err))
 				}
 			}
 		}
@@ -135,7 +132,7 @@ func startTestClient(t *testing.T) {
 
 	// check if the server is running
 	select {
-	case stop, ok := <-stopServerChannel:
+	case stop, ok := <-stopTestServerChan:
 		if ok && stop {
 			return
 		}
@@ -143,12 +140,13 @@ func startTestClient(t *testing.T) {
 		break
 	}
 
-	defer func() { stopServerChannel <- true }()
+	defer func() { stopTestServerChan <- true }()
 
 	testEndPoint(t, "GET", "/", "", 200)
 	testEndPoint(t, "GET", "/status", "", 200)
 
 	// error conditions
+
 	testEndPoint(t, "GET", "/INVALID", "", 404) // NotFound
 	testEndPoint(t, "DELETE", "/", "", 405)     // MethodNotAllowed
 	testEndPoint(t, "GET", "/panic", "", 500)   // PanicHandler
@@ -170,7 +168,7 @@ func triggerPanic(rw http.ResponseWriter, hr *http.Request, ps httprouter.Params
 	panic("TEST PANIC")
 }
 
-// return true if the input is a JSON
+// isJSON returns true if the input is JSON
 func isJSON(s []byte) bool {
 	var js map[string]interface{}
 	return json.Unmarshal(s, &js) == nil
@@ -178,11 +176,12 @@ func isJSON(s []byte) bool {
 
 func testEndPoint(t *testing.T, method string, path string, data string, code int) {
 	var payload = []byte(data)
-	req, err := http.NewRequest(method, fmt.Sprintf("http://127.0.0.1:8765%s", path), bytes.NewBuffer(payload))
+	req, err := http.NewRequest(method, fmt.Sprintf("http://127.0.0.1:8000%s", path), bytes.NewBuffer(payload))
 	if err != nil {
 		t.Error(fmt.Errorf("An error was not expected: %v", err))
 		return
 	}
+	req.Close = true
 	req.Header.Set("Content-Type", "application/json")
 	client := &http.Client{}
 	resp, err := client.Do(req)
@@ -190,17 +189,26 @@ func testEndPoint(t *testing.T, method string, path string, data string, code in
 		t.Error(fmt.Errorf("An error was not expected: %v", err))
 		return
 	}
-	defer resp.Body.Close()
-	if resp.StatusCode != code {
-		t.Error(fmt.Errorf("The espected status code is %d, found %d", code, resp.StatusCode))
-		return
-	}
-	body, err := ioutil.ReadAll(resp.Body)
+	defer func() {
+		err := resp.Body.Close()
+		if err != nil {
+			t.Error(fmt.Errorf("An error was not expected: %v", err))
+			return
+		}
+	}()
+
+	body, err := ioutilReadAll(resp.Body)
 	if err != nil {
 		t.Error(fmt.Errorf("An error was not expected: %v", err))
 		return
 	}
+
+	if resp.StatusCode != code {
+		t.Error(fmt.Errorf("The expected '%s' status code is %d, found %d", path, code, resp.StatusCode))
+		return
+	}
+
 	if !isJSON(body) {
-		t.Error(fmt.Errorf("The body is not a JSON"))
+		t.Error(fmt.Errorf("The body is not JSON"))
 	}
 }

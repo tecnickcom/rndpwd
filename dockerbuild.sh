@@ -5,7 +5,6 @@
 # Build the software inside a Docker container
 #
 # @author      Nicola Asuni <info@tecnick.com>
-# @copyright   2015-2016 Nicola Asuni - Tecnick.com LTD
 # ------------------------------------------------------------------------------
 
 # NOTES:

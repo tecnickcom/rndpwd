@@ -2,6 +2,7 @@
 
 %global c_vendor    %{_vendor}
 %global gh_owner    %{_owner}
+%global gh_cvspath  %{_cvspath}
 %global gh_project  %{_project}
 
 Name:      %{_package}
@@ -10,15 +11,15 @@ Release:   %{_release}%{?dist}
 Summary:   Random Password Generator
 
 Group:     Applications/Services
-License:   Expat
-URL:       https://github.com/%{gh_owner}/%{gh_project}
+License:   %{_docpath}/LICENSE
+URL:       https://%{gh_cvspath}/%{gh_project}
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-%(%{__id_u} -n)
 
 Provides:  %{gh_project} = %{version}
 
 %description
-Command-line Random Password Generator
+Web-service Random Password Generator
 
 %build
 #(cd %{_current_directory} && make build)
@@ -41,6 +42,6 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_configpath}*
 
 %changelog
-* Wed Nov 18 2015 Nicola Asuni <info@tecnick.com> 1.0.0-1
+* Wed Nov 18 2015 Tecnick.com <info@tecnick.com> 1.0.0-1
 - Initial Commit
 

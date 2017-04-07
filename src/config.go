@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"regexp"
+	"strings"
 
 	"github.com/spf13/viper"
 	_ "github.com/spf13/viper/remote"
@@ -23,27 +24,29 @@ func (rcfg remoteConfigParams) isEmpty() bool {
 
 // params struct contains the application parameters
 type params struct {
-	log           *LogData   // Log level: EMERGENCY, ALERT, CRITICAL, ERROR, WARNING, NOTICE, INFO, DEBUG.
-	serverMode    bool       // set this to true to start a RESTful API server mode
-	serverAddress string     // HTTP API address for server mode (ip:port) or just (:port)
+	log           *LogData   // Log level: EMERGENCY, ALERT, CRITICAL, ERROR, WARNING, NOTICE, INFO, DEBUG
+	stats         *StatsData // StatsD configuration, it is used to collect usage metrics
+	serverAddress string     // HTTP address (ip:port) or just (:port)
 	charset       string     // characters to use to generate a password
 	charsetLength int        // length of the character set in bytes
 	length        int        // length of each password (number of characters or bytes)
 	quantity      int        // number of passwords to generate
-	stats         *StatsData // StatsD configuration, it is used to collect usage metrics
 }
 
 var configDir string
-var appParams = new(params)
+var appParams = &params{}
 
 // getConfigParams returns the configuration parameters
-func getConfigParams() (params, error) {
-	cfg, rcfg := getLocalConfigParams()
+func getConfigParams() (par params, err error) {
+	cfg, rcfg, err := getLocalConfigParams()
+	if err != nil {
+		return par, err
+	}
 	return getRemoteConfigParams(cfg, rcfg)
 }
 
 // getLocalConfigParams returns the local configuration parameters
-func getLocalConfigParams() (cfg params, rcfg remoteConfigParams) {
+func getLocalConfigParams() (cfg params, rcfg remoteConfigParams, err error) {
 
 	viper.Reset()
 
@@ -53,21 +56,21 @@ func getLocalConfigParams() (cfg params, rcfg remoteConfigParams) {
 	viper.SetDefault("remoteConfigPath", RemoteConfigPath)
 	viper.SetDefault("remoteConfigSecretKeyring", RemoteConfigSecretKeyring)
 
+	// set default configuration values
+
 	viper.SetDefault("log.level", LogLevel)
 	viper.SetDefault("log.network", LogNetwork)
 	viper.SetDefault("log.address", LogAddress)
-
-	// set default configuration values
-	viper.SetDefault("serverMode", ServerMode)
-	viper.SetDefault("serverAddress", ServerAddress)
-	viper.SetDefault("charset", ValidCharset)
-	viper.SetDefault("length", PasswordLength)
-	viper.SetDefault("quantity", NumPasswords)
 
 	viper.SetDefault("stats.prefix", StatsPrefix)
 	viper.SetDefault("stats.network", StatsNetwork)
 	viper.SetDefault("stats.address", StatsAddress)
 	viper.SetDefault("stats.flush_period", StatsFlushPeriod)
+
+	viper.SetDefault("serverAddress", ServerAddress)
+	viper.SetDefault("charset", ValidCharset)
+	viper.SetDefault("length", PasswordLength)
+	viper.SetDefault("quantity", NumPasswords)
 
 	// name of the configuration file without extension
 	viper.SetConfigName("config")
@@ -85,18 +88,29 @@ func getLocalConfigParams() (cfg params, rcfg remoteConfigParams) {
 	}
 
 	// Find and read the local configuration file (if any)
-	viper.ReadInConfig()
+	err = viper.ReadInConfig()
+	if err != nil {
+		return cfg, rcfg, err
+	}
 
 	// read configuration parameters
 	cfg = getViperParams()
 
 	// support environment variables for the remote configuration
 	viper.AutomaticEnv()
-	viper.SetEnvPrefix(ProgramName) // will be uppercased automatically
-	viper.BindEnv("remoteConfigProvider")
-	viper.BindEnv("remoteConfigEndpoint")
-	viper.BindEnv("remoteConfigPath")
-	viper.BindEnv("remoteConfigSecretKeyring")
+	viper.SetEnvPrefix(strings.Replace(ProgramName, "-", "_", -1)) // will be uppercased automatically
+	envVar := []string{
+		"remoteConfigProvider",
+		"remoteConfigEndpoint",
+		"remoteConfigPath",
+		"remoteConfigSecretKeyring",
+	}
+	for _, ev := range envVar {
+		err = viper.BindEnv(ev)
+		if err != nil {
+			return cfg, rcfg, err
+		}
+	}
 
 	rcfg = remoteConfigParams{
 		remoteConfigProvider:      viper.GetString("remoteConfigProvider"),
@@ -105,7 +119,7 @@ func getLocalConfigParams() (cfg params, rcfg remoteConfigParams) {
 		remoteConfigSecretKeyring: viper.GetString("remoteConfigSecretKeyring"),
 	}
 
-	return cfg, rcfg
+	return cfg, rcfg, nil
 }
 
 // getRemoteConfigParams returns the remote configuration parameters
@@ -117,21 +131,21 @@ func getRemoteConfigParams(cfg params, rcfg remoteConfigParams) (params, error) 
 
 	viper.Reset()
 
+	// set default configuration values
+
 	viper.SetDefault("log.level", cfg.log.Level)
 	viper.SetDefault("log.network", cfg.log.Network)
 	viper.SetDefault("log.address", cfg.log.Address)
-
-	// set default configuration values
-	viper.SetDefault("serverMode", cfg.serverMode)
-	viper.SetDefault("serverAddress", cfg.serverAddress)
-	viper.SetDefault("charset", cfg.charset)
-	viper.SetDefault("length", cfg.length)
-	viper.SetDefault("quantity", cfg.quantity)
 
 	viper.SetDefault("stats.prefix", cfg.stats.Prefix)
 	viper.SetDefault("stats.network", cfg.stats.Network)
 	viper.SetDefault("stats.address", cfg.stats.Address)
 	viper.SetDefault("stats.flush_period", cfg.stats.FlushPeriod)
+
+	viper.SetDefault("serverAddress", cfg.serverAddress)
+	viper.SetDefault("charset", cfg.charset)
+	viper.SetDefault("length", cfg.length)
+	viper.SetDefault("quantity", cfg.quantity)
 
 	// configuration type
 	viper.SetConfigType("json")
@@ -165,18 +179,17 @@ func getViperParams() params {
 			Address: viper.GetString("log.address"),
 		},
 
-		serverMode:    viper.GetBool("serverMode"),
-		serverAddress: viper.GetString("serverAddress"),
-		charset:       viper.GetString("charset"),
-		length:        viper.GetInt("length"),
-		quantity:      viper.GetInt("quantity"),
-
 		stats: &StatsData{
 			Prefix:      viper.GetString("stats.prefix"),
 			Network:     viper.GetString("stats.network"),
 			Address:     viper.GetString("stats.address"),
 			FlushPeriod: viper.GetInt("stats.flush_period"),
 		},
+
+		serverAddress: viper.GetString("serverAddress"),
+		charset:       viper.GetString("charset"),
+		length:        viper.GetInt("length"),
+		quantity:      viper.GetInt("quantity"),
 	}
 }
 
@@ -184,29 +197,28 @@ func getViperParams() params {
 func checkParams(prm *params) error {
 	// Log
 	if prm.log.Level == "" {
-		return errors.New("log Level is empty")
+		return errors.New("log.level is empty")
 	}
 	err := prm.log.setLog()
 	if err != nil {
 		return err
 	}
 
-	// Server
-	if prm.serverMode && prm.serverAddress == "" {
-		return errors.New("The Server address is empty")
-	}
-
 	// StatsD
 	if prm.stats.Prefix == "" {
-		return errors.New("The stats Prefix is empty")
+		return errors.New("stats prefix is empty")
 	}
 	if prm.stats.Network != "udp" && prm.stats.Network != "tcp" {
-		return errors.New("The stats Network must be udp or tcp")
+		return errors.New("stats.network must be udp or tcp")
 	}
 	if prm.stats.FlushPeriod < 0 {
-		return errors.New("The stats FlushPeriod must be >= 0")
+		return errors.New("stats.flush_period must be >= 0")
 	}
 
+	// Server
+	if prm.serverAddress == "" {
+		return errors.New("The Server address is empty")
+	}
 	prm.charsetLength = len(prm.charset)
 	if prm.charsetLength < 2 || prm.charsetLength > 92 {
 		return errors.New("The charset string must contain between 2 and 92 ASCII characters")

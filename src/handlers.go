@@ -5,37 +5,34 @@ import (
 	"strconv"
 	"time"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/julienschmidt/httprouter"
 )
 
 var startTime = time.Now()
 
-// return a list of available routes
+// index returns a list of available routes
 func indexHandler(rw http.ResponseWriter, hr *http.Request, ps httprouter.Params) {
 	stats.Increment("http.index.in")
-	type configInfo struct {
-		Charset  string `json:"charset"`  // characters to use to generate a password
-		Length   int    `json:"length"`   // length of each password (number of characters or bytes)
-		Quantity int    `json:"quantity"` // number of passwords to generate
-	}
+	defer stats.Increment("http.index.out")
+	log.Debug("Handler: index")
 	type info struct {
-		Duration float64    `json:"duration"` // elapsed time since last passwor drequest or service start
-		Entries  Routes     `json:"routes"`   // available routes (http entry points)
-		Config   configInfo `json:"config"`   // configuration parameters
+		Duration float64 `json:"duration"` // elapsed time since service start [seconds]
+		Entries  Routes  `json:"routes"`   // available routes (http entry points)
 	}
 	sendResponse(rw, hr, ps, http.StatusOK, info{
 		Duration: time.Since(startTime).Seconds(),
 		Entries:  routes,
-		Config:   configInfo{Charset: appParams.charset, Length: appParams.length, Quantity: appParams.quantity},
 	})
-	stats.Increment("http.index.out")
 }
 
-// returns the status of the service
+// statusHandler returns the status of the service
 func statusHandler(rw http.ResponseWriter, hr *http.Request, ps httprouter.Params) {
 	stats.Increment("http.status.in")
+	defer stats.Increment("http.status.out")
+	log.Debug("Handler: status")
 	type info struct {
-		Duration float64 `json:"duration"` // elapsed time since last request in seconds
+		Duration float64 `json:"duration"` // elapsed time since service start [seconds]
 		Message  string  `json:"message"`  // error message
 	}
 	status := http.StatusOK
@@ -44,12 +41,12 @@ func statusHandler(rw http.ResponseWriter, hr *http.Request, ps httprouter.Param
 		Duration: time.Since(startTime).Seconds(),
 		Message:  message,
 	})
-	stats.Increment("http.status.out")
 }
 
 // password returns the requested password
-func password(rw http.ResponseWriter, hr *http.Request, ps httprouter.Params) {
+func passwordHandler(rw http.ResponseWriter, hr *http.Request, ps httprouter.Params) {
 	stats.Increment("http.password.in")
+	defer stats.Increment("http.password.out")
 	startTime = time.Now()
 
 	// decode URL parameters (if any)
@@ -84,5 +81,4 @@ func password(rw http.ResponseWriter, hr *http.Request, ps httprouter.Params) {
 		Passwords: getAllPassword(urlParams),
 		Duration:  time.Since(startTime).Seconds(),
 	})
-	stats.Increment("http.password.out")
 }

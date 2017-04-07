@@ -1,7 +1,7 @@
 ~#PKGNAME#~ (~#VERSION#~-~#RELEASE#~) UNRELEASED; urgency=low
 
   * Please check the
-    https://github.com/~#VENDOR#~/~#PROJECT#~
+    https://github.com/tecnickcom/rndpwd
     commit history
 
- -- Nicola Asuni <info@tecnick.com>  ~#DATE#~
+ -- tecnickcom <info@tecnick.com>  ~#DATE#~

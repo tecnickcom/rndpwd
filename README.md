@@ -15,16 +15,24 @@
 
 * **category**    Application
 * **author**      Nicola Asuni <info@tecnick.com>
-* **copyright**   2015-2016 Nicola Asuni - Tecnick.com LTD
+* **copyright**   2015-2017 Nicola Asuni - Tecnick.com LTD
 * **license**     MIT (see LICENSE)
 * **link**        https://github.com/tecnickcom/rndpwd
 * **RPM**         https://bintray.com/tecnickcom/rpm/rndpwd
 * **DEB**         https://bintray.com/tecnickcom/deb/rndpwd
 
 
+## Requirements
+
+An additional Python program is used to check the validity of the JSON configuration files against a JSON schema:
+
+```
+sudo pip install json-spec 
+```
+
 ## Description
 
-Command-line and Web-service Random Password Generator
+Web-service Random Password Generator
 
 This is a full example of command-line and Web-service GO language project using a Makefile that integrates targets for common QA tasks and packaging, including RPM, Debian and Docker.
 

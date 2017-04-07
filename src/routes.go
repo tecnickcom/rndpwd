@@ -10,7 +10,7 @@ type Route struct {
 	Description string            `json:"description"` // Description
 }
 
-// Routes is a list of routes
+// Routes is a list of HTTP routes
 type Routes []Route
 
 // HTTP routes
@@ -19,12 +19,12 @@ var routes = Routes{
 		"GET",
 		"/status",
 		statusHandler,
-		"check this service status",
+		"Check this service status.",
 	},
 	Route{
 		"GET",
 		"/password",
-		password,
-		"returns random passwords; charset, length and quantity can be specified as query parameters",
+		passwordHandler,
+		"Returns random passwords; charset, length and quantity can be specified as query parameters",
 	},
 }

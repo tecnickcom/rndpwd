@@ -2,7 +2,7 @@
 
 # Check if the VERSION has been updated before pushing to the master branch.
 #
-# @author      Nicola Asuni <nicola.asuni@tecnick.com>
+# @author      Nicola Asuni <info@tecnick.com>
 
 # current git branch
 CURRENT_GIT_BRANCH=`git rev-parse --abbrev-ref HEAD`

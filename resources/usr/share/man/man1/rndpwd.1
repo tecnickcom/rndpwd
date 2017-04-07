@@ -1,9 +1,9 @@
 .\" Manpage for rndpwd.
-.TH RNDPWD "1" "2015-2016" "rndpwd" "User Commands"
+.TH RNDPWD "1" "2015-2017" "rndpwd" "User Commands"
 .SH NAME
-rndpwd \- Command-line and Web-service Random Password Generator
+rndpwd \- Web-service Random Password Generator
 .SH DESCRIPTION
-rndpwd is a command\-line and web-service tool to generate random passwords
+rndpwd  Web-service Random Password Generator
 .SS "Usage:"
 .IP
 rndpwd [flags]
@@ -14,30 +14,12 @@ version
 print this program version
 .SS "Flags:"
 .HP
-\fB\-d\fR, \fB\-\-configDir\fR=\fI10\fR: Configuration directory to be added on top of the search list
+\fB\-c\fR, \fB\-\-configDir\fR=\fI10\fR: Configuration directory to be added on top of the search list
 .HP
 \fB\-o\fR, \fB\-\-logLevel\fR=\fI10\fR: Log level: EMERGENCY, ALERT, CRITICAL, ERROR, WARNING, NOTICE, INFO, DEBUG
-.HP
-\fB\-s\fR, \fB\-\-serverMode\fR=\fI10\fR: Set this to true to start a RESTful API server mode
-.HP
-\fB\-u\fR, \fB\-\-serverAddress\fR=\fI10\fR: HTTP API address for server mode (ip:port) or just (:port)
-.HP
-\fB\-l\fR, \fB\-\-length\fR=\fI16\fR: Length of each password (number of characters or bytes)
-.HP
-\fB\-c\fR, \fB\-\-charset\fR="!#$%&()*+,\-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_abcdefghijklmnopqrstuvwxyz{|}~": Characters to use to generate a password
-.HP
-\fB\-q\fR, \fB\-\-quantity\fR=\fI10\fR: Number of passwords to generate
-.HP
-\fB\-p\fR, \fB\-\-statsPrefix\fR=\fI10\fR: StatsD bucket prefix name
-.HP
-\fB\-k\fR, \fB\-\-statsNetwork\fR=\fI10\fR: StatsD client network type (udp or tcp)
-.HP
-\fB\-m\fR, \fB\-\-statsAddress\fR=\fI10\fR: StatsD daemon address (ip:port) or just (:port)
-.HP
-\fB\-r\fR, \fB\-\-statsFlushPeriod\fR=\fI10\fR: StatsD client flush period in milliseconds
 .PP
 Use "rndpwd [command] \fB\-\-help\fR" for more information about a command.
 .SH AUTHOR
-Nicola Asuni (info@tecnick.com)
+Tecnick.com (info@tecnick.com)
 .SH COPYRIGHT
-(c) 2015-2016 Nicola Asuni - Tecnick.com LTD
+(c) 2015-2017 Tecnick.com
