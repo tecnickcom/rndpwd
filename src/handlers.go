@@ -49,25 +49,30 @@ func passwordHandler(rw http.ResponseWriter, hr *http.Request, ps httprouter.Par
 	defer stats.Increment("http.password.out")
 	startTime = time.Now()
 
-	// decode URL parameters (if any)
-	urlParams := appParams
 	query := hr.URL.Query()
+
+	charset := appParams.charset
 	if val, exist := query["charset"]; exist {
-		urlParams.charset = val[0]
+		charset = val[0]
 	}
+
+	length := appParams.length
 	if val, exist := query["length"]; exist {
 		i, err := strconv.Atoi(val[0])
 		if err == nil {
-			urlParams.length = i
+			length = i
 		}
 	}
+
+	quantity := appParams.quantity
 	if val, exist := query["quantity"]; exist {
 		i, err := strconv.Atoi(val[0])
 		if err == nil {
-			urlParams.quantity = i
+			quantity = i
 		}
 	}
-	err := checkParams(urlParams)
+
+	err := checkPasswordParams(quantity, length, charset)
 	if err != nil {
 		sendResponse(rw, hr, ps, http.StatusBadRequest, err.Error())
 		return
@@ -78,7 +83,7 @@ func passwordHandler(rw http.ResponseWriter, hr *http.Request, ps httprouter.Par
 		Duration  float64  `json:"duration"`  // password generation time
 	}
 	sendResponse(rw, hr, ps, http.StatusOK, info{
-		Passwords: getAllPassword(urlParams),
+		Passwords: getAllPassword(quantity, length, charset),
 		Duration:  time.Since(startTime).Seconds(),
 	})
 }

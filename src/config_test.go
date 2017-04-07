@@ -27,7 +27,6 @@ func getTestCfgParams() *params {
 		quantity:      2,
 		length:        32,
 		charset:       ValidCharset,
-		charsetLength: 92,
 	}
 }
 

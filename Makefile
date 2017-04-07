@@ -166,7 +166,8 @@ test:
 	@mkdir -p target/test
 	@mkdir -p target/report
 	GOPATH=$(GOPATH) \
-	go test -tags ${STATIC_TAG} \
+	go test \
+	-tags ${STATIC_TAG} \
 	-covermode=atomic \
 	-bench=. \
 	-race \

@@ -28,7 +28,6 @@ type params struct {
 	stats         *StatsData // StatsD configuration, it is used to collect usage metrics
 	serverAddress string     // HTTP address (ip:port) or just (:port)
 	charset       string     // characters to use to generate a password
-	charsetLength int        // length of the character set in bytes
 	length        int        // length of each password (number of characters or bytes)
 	quantity      int        // number of passwords to generate
 }
@@ -219,18 +218,25 @@ func checkParams(prm *params) error {
 	if prm.serverAddress == "" {
 		return errors.New("The Server address is empty")
 	}
-	prm.charsetLength = len(prm.charset)
-	if prm.charsetLength < 2 || prm.charsetLength > 92 {
+
+	return checkPasswordParams(prm.quantity, prm.length, prm.charset)
+}
+
+// checkPasswordParams cheks if the password configuration parameters are valid
+func checkPasswordParams(quantity int, length int, charset string) error {
+
+	charsetLength := len(charset)
+	if charsetLength < 2 || charsetLength > 92 {
 		return errors.New("The charset string must contain between 2 and 92 ASCII characters")
 	}
 	validChr := regexp.MustCompile("[^" + regexp.QuoteMeta(ValidCharset) + "]")
-	if validChr.MatchString(prm.charset) {
+	if validChr.MatchString(charset) {
 		return errors.New("The charset string contains invalid characters")
 	}
-	if prm.length < 2 {
+	if length < 2 {
 		return errors.New("The length of the passwords to generate must be at least 2")
 	}
-	if prm.quantity < 1 {
+	if quantity < 1 {
 		return errors.New("The number of passwords to generate must be at least 1")
 	}
 
