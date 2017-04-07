@@ -4,8 +4,9 @@ Upstream-Contact: Tecnick.com <info@tecnick.com>
 Source: https://github.com/tecnickcom/rndpwd
 
 Files: *
-Copyright: Copyright 2015 Tecnick.com <info@tecnick.com>
-License: RESERVED
+Copyright: Copyright 2015-2017 Nicola Asuni Tecnick.com <info@tecnick.com>
+License: MIT
 
-License: RESERVED
- ALL RIGHTS RESERVED
+License: MIT
+ For full license and copyright terms please read:
+ /usr/share/doc/tecnickcom-rndpwd/LICENSE

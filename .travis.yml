@@ -38,6 +38,11 @@ addons:
     - dh-make
     - dh-golang
     - upx-ucl
+    - python
+    - python-pip
+
+install:
+  - pip install json-spec
 
 script:
   - make buildall
