@@ -35,7 +35,7 @@ const RemoteConfigPath = ""
 const RemoteConfigSecretKeyring = "" // #nosec
 
 // ServerAddress is the default HTTP address (ip:port) or just (:port)
-const ServerAddress = ":8000"
+const ServerAddress = ":8017"
 
 // ServerShutdownTimeout timeout in seconds before forcing the server to close
 const ServerShutdownTimeout = 10

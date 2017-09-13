@@ -14,7 +14,7 @@
     "address": ":8125",
     "flush_period": 100
   },
-  "serverAddress": ":8000",
+  "serverAddress": ":8017",
   "charset":"!#$%&()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ^_abcdefghijklmnopqrstuvwxyz~",
   "length": 32,
   "quantity": 10
