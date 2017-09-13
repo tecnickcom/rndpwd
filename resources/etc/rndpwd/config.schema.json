@@ -113,7 +113,7 @@
     "serverAddress": {
       "description": "Internal HTTP address (ip:port) or just (:port)",
       "type": "string",
-      "default": ":8000"
+      "default": ":8017"
     },
     "charset": {
       "description": "String containing the valid characters for a password",
