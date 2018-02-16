@@ -15,7 +15,7 @@
 
 * **category**    Application
 * **author**      Nicola Asuni <info@tecnick.com>
-* **copyright**   2015-2017 Nicola Asuni - Tecnick.com LTD
+* **copyright**   2015-2018 Nicola Asuni - Tecnick.com LTD
 * **license**     MIT (see LICENSE)
 * **link**        https://github.com/tecnickcom/rndpwd
 * **RPM**         https://bintray.com/tecnickcom/rpm/rndpwd
@@ -130,17 +130,8 @@ rndpwd [flags]
 
 Flags:
 
--d, --configDir             : Configuration directory to be added on top of the search list
+-c, --configDir             : Configuration directory to be added on top of the search list
 -o, --loglevel=INFO         : Log level: EMERGENCY, ALERT, CRITICAL, ERROR, WARNING, NOTICE, INFO, DEBUG
--s, --serverMode            : Set this to true to start an HTTP RESTful API server
--u, --serverAddress="8080"  : HTTP API address for server mode (ip:port) or just (:port)
--c, --charset="!#.0123456789@ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz": Characters to use to generate a password
--l, --length=16             : Length of each password (number of characters or bytes)
--q, --quantity=1            : Number of passwords to generate
--p, --statsPrefix=""        : StatsD bucket prefix name
--k, --statsNetwork="udp"    : StatsD client network type (udp or tcp)
--m, --statsAddress=":8125"  : StatsD daemon address (ip:port) or just (:port)
--r, --statsFlushPeriod=100  : StatsD client flush period in milliseconds
 ```
 
 ## Configuration
@@ -178,25 +169,6 @@ When the server mode is enabled a RESTful HTTP JSON API server will listen on th
 |<nobr> /status          </nobr>| GET    |<nobr> check the server status                           </nobr>|
 |<nobr> /password        </nobr>| GET    |generate new passwords as configured; charset, length and quantity can be specified as query parameters |
 
-
-## Examples
-
-Once the application has being compiled with `make build`, it can be quickly tested:
-
-Generate 10 passwords with 32 characters:
-```bash
-target/usr/bin/rndpwd --length=32 --quantity=10
-```
-
-Generate 10 passwords with 8 characters using only numbers:
-```bash
-target/usr/bin/rndpwd --charset="0123456789" --length=8 --quantity=10
-```
-
-Start aan HTTP RESTful API server listening on port 8080
-```bash
-target/usr/bin/rndpwd --server --serverAddress=:8080
-```
 
 ## Logs
 
