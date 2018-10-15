@@ -20,8 +20,10 @@ func getNewPassword(length int, charset string) string {
 	maxValue := new(big.Int).SetInt64(int64(len(charset)))
 
 	for i := 0; i < length; i++ {
-		rnd, _ := rand.Int(rand.Reader, maxValue)
-		password[i] = chars[rnd.Int64()]
+		rnd, err := rand.Int(rand.Reader, maxValue)
+		if err != nil {
+			password[i] = chars[rnd.Int64()]
+		}
 	}
 
 	return string(password)

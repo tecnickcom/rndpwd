@@ -71,7 +71,7 @@ func startServer(address string) error {
 		// shut down gracefully, but wait no longer than specified timeout before halting
 		ctx, cancel := context.WithTimeout(context.Background(), ServerShutdownTimeout*time.Second)
 		defer cancel()
-		server.Shutdown(ctx)
+		server.Shutdown(ctx) // #nosec
 	}()
 
 	err := server.ListenAndServe()
