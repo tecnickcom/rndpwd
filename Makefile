@@ -4,9 +4,6 @@
 # @link        https://github.com/tecnickcom/rndpwd
 # ------------------------------------------------------------------------------
 
-# List special make targets that are not associated with files
-.PHONY: help all test format fmtcheck confcheck vet lint coverage cyclo ineffassign misspell structcheck varcheck errcheck gosimple astscan qa deps install uninstall clean nuke build rpm deb bz2 docker dockertest buildall dbuild bintray
-
 # Use bash as shell (Note: Ubuntu now uses dash which doesn't support PIPESTATUS).
 SHELL=/bin/bash
 
@@ -32,7 +29,7 @@ RELEASE=$(shell cat RELEASE)
 PKGNAME=${VENDOR}-${PROJECT}
 
 # Current directory
-CURRENTDIR=$(shell pwd)
+CURRENTDIR=$(dir $(realpath $(firstword $(MAKEFILE_LIST))))
 
 # GO lang path
 ifneq ($(GOPATH),)
@@ -116,6 +113,7 @@ endif
 # --- MAKE TARGETS ---
 
 # Display general help about this command
+.PHONY: help
 help:
 	@echo ""
 	@echo "$(PROJECT) Makefile."
@@ -137,7 +135,7 @@ help:
 	@echo "    make structcheck : Find unused struct fields"
 	@echo "    make varcheck    : Find unused global variables and constants"
 	@echo "    make errcheck    : Check that error return values are used"
-	@echo "    make gosimple    : Suggest code simplifications"
+	@echo "    make staticcheck : Suggest code simplifications"
 	@echo "    make astscan     : GO AST scanner"
 	@echo ""
 	@echo "    make docs        : Generate source code documentation"
@@ -162,6 +160,7 @@ help:
 all: help
 
 # Run the unit tests
+.PHONY: test
 test:
 	@mkdir -p target/test
 	@mkdir -p target/report
@@ -180,76 +179,91 @@ test:
 	test $${PIPESTATUS[0]} -eq 0
 
 # Format the source code
+.PHONY: format
 format:
 	@find ./src -type f -name "*.go" -exec gofmt -s -w {} \;
 
 # Check if the source code has been formatted
+.PHONY: fmtcheck
 fmtcheck:
 	@mkdir -p target
 	@find ./src -type f -name "*.go" -exec gofmt -s -d {} \; | tee target/format.diff
 	@test ! -s target/format.diff || { echo "ERROR: the source code has not been formatted - please use 'make format' or 'gofmt'"; exit 1; }
 
 # Validate JSON configuration files against the JSON schema
+.PHONY: confcheck
 confcheck:
 	json validate --schema-file=resources/etc/${PROJECT}/config.schema.json --document-file=resources/test/etc/${PROJECT}/config.json
 	json validate --schema-file=resources/etc/${PROJECT}/config.schema.json --document-file=resources/etc/${PROJECT}/config.json
 
 # Check for syntax errors
+.PHONY: vet
 vet:
 	GOPATH=$(GOPATH) \
 	go vet ./src
 
 # Check for style errors
+.PHONY: lint
 lint:
 	GOPATH=$(GOPATH) PATH=$(GOPATH)/bin:$(PATH) golint ./src
 
 # Generate the coverage report
+.PHONY: coverage
 coverage:
 	@mkdir -p target/report
 	GOPATH=$(GOPATH) \
 	go tool cover -html=target/report/coverage.out -o target/report/coverage.html
 
 # Report cyclomatic complexity
+.PHONY: cyclo
 cyclo:
 	@mkdir -p target/report
 	GOPATH=$(GOPATH) gocyclo -avg ./src | tee target/report/cyclo.txt ; test $${PIPESTATUS[0]} -eq 0
 
 # Detect ineffectual assignments
+.PHONY: ineffassign
 ineffassign:
 	@mkdir -p target/report
 	GOPATH=$(GOPATH) ineffassign ./src | tee target/report/ineffassign.txt ; test $${PIPESTATUS[0]} -eq 0
 
 # Detect commonly misspelled words in source files
+.PHONY: misspell
 misspell:
 	@mkdir -p target/report
 	GOPATH=$(GOPATH) misspell -error ./src  | tee target/report/misspell.txt ; test $${PIPESTATUS[0]} -eq 0
 
 # Find unused struct fields.
+.PHONY: structcheck
 structcheck:
 	@mkdir -p target/report
 	GOPATH=$(GOPATH) structcheck -a ./src  | tee target/report/structcheck.txt
 
 # Find unused global variables and constants.
+.PHONY: varcheck
 varcheck:
 	@mkdir -p target/report
 	GOPATH=$(GOPATH) varcheck -e ./src  | tee target/report/varcheck.txt
 
 # Check that error return values are used.
+.PHONY: errcheck
 errcheck:
 	@mkdir -p target/report
 	GOPATH=$(GOPATH) errcheck ./src  | tee target/report/errcheck.txt
 
 # Suggest code simplifications"
-gosimple:
+.PHONY: staticcheck
+staticcheck:
 	@mkdir -p target/report
-	GOPATH=$(GOPATH) gosimple ./src  | tee target/report/gosimple.txt
+	GOPATH=$(GOPATH) staticcheck ./src  | tee target/report/staticcheck.txt
 
 # AST scanner
+.PHONY: astscan
 astscan:
 	@mkdir -p target/report
-	GOPATH=$(GOPATH) gosec ./src | tee target/report/astscan.txt ; test $${PIPESTATUS[0]} -eq 0 || true
+	GOPATH=$(GOPATH) gosec ./src/... | tee target/report/astscan.txt ; test $${PIPESTATUS[0]} -eq 0 || true
 
 # Generate source docs
+.PHONY: docs
 docs:
 	@mkdir -p target/docs
 	nohup sh -c 'GOPATH=$(GOPATH) godoc -http=127.0.0.1:6060' > target/godoc_server.log 2>&1 &
@@ -257,11 +271,13 @@ docs:
 	@echo '<html><head><meta http-equiv="refresh" content="0;./127.0.0.1:6060/pkg/'${CVSPATH}'/'${PROJECT}'/index.html"/></head><a href="./127.0.0.1:6060/pkg/'${CVSPATH}'/'${PROJECT}'/index.html">'${PKGNAME}' Documentation ...</a></html>' > target/docs/index.html
 
 # Alias to run targets: fmtcheck test vet lint coverage
-qa: fmtcheck confcheck test vet lint coverage cyclo ineffassign misspell structcheck varcheck errcheck gosimple astscan
+.PHONY: qa
+qa: fmtcheck confcheck test vet lint coverage cyclo ineffassign misspell structcheck varcheck errcheck staticcheck astscan
 
 # --- INSTALL ---
 
 # Get the dependencies
+.PHONY: deps
 deps:
 	GOPATH=$(GOPATH) go get -tags ${STATIC_TAG} -v ./src
 	GOPATH=$(GOPATH) go get github.com/inconshreveable/mousetrap
@@ -274,10 +290,11 @@ deps:
 	GOPATH=$(GOPATH) go get github.com/opennota/check/cmd/structcheck
 	GOPATH=$(GOPATH) go get github.com/opennota/check/cmd/varcheck
 	GOPATH=$(GOPATH) go get github.com/kisielk/errcheck
-	GOPATH=$(GOPATH) go get honnef.co/go/tools/cmd/gosimple
+	GOPATH=$(GOPATH) go get honnef.co/go/tools/cmd/staticcheck
 	GOPATH=$(GOPATH) go get github.com/securego/gosec/cmd/gosec/...
 
 # Install this application
+.PHONY: install
 install: uninstall
 	mkdir -p $(PATHINSTBIN)
 	cp -r ./target/${BINPATH}* $(PATHINSTBIN)
@@ -310,6 +327,7 @@ ifneq ($(strip $(MANPATH)),)
 endif
 
 # Install SSL certificates
+.PHONY: installssl
 installssl: 
 ifneq ($(strip $(SSLCONFIGPATH)),)
 	mkdir -p $(PATHINSTSSLCFG)
@@ -320,20 +338,24 @@ ifneq ($(strip $(SSLCONFIGPATH)),)
 endif
 
 # Remove all installed files (excluding configuration files)
+.PHONY: uninstall
 uninstall:
 	rm -rf $(PATHINSTBIN)$(PROJECT)
 	rm -rf $(PATHINSTDOC)
 
 # Remove any build artifact
+.PHONY: clean
 clean:
 	GOPATH=$(GOPATH) go clean ./...
 
 # Deletes any intermediate file
+.PHONY: nuke
 nuke:
 	rm -rf ./target
 	GOPATH=$(GOPATH) go clean -i ./...
 
 # Compile the application
+.PHONY: build
 build: deps
 	GOPATH=$(GOPATH) \
 	go build \
@@ -345,6 +367,7 @@ ifneq (${UPXENABLED},)
 endif
 
 # Cross-compile the application for several platforms
+.PHONY: crossbuild
 crossbuild: deps
 	@echo "" > target/ccfailures.txt
 	$(foreach TARGET,$(CCTARGETS), \
@@ -368,6 +391,7 @@ endif
 # --- PACKAGING ---
 
 # Build the RPM package for RedHat-like Linux distributions
+.PHONY: rpm
 rpm:
 	rm -rf $(PATHRPMPKG)
 	rpmbuild \
@@ -387,6 +411,7 @@ rpm:
 	-bb resources/rpm/rpm.spec
 
 # Build the DEB package for Debian-like Linux distributions
+.PHONY: deb
 deb:
 	rm -rf $(PATHDEBPKG)
 	make install DESTDIR=$(PATHDEBPKG)/$(PKGNAME)-$(VERSION)
@@ -422,12 +447,14 @@ endif
 	cd $(PATHDEBPKG)/$(PKGNAME)-$(VERSION) && debuild -us -uc
 
 # Build a compressed bz2 archive
+.PHONY: bz2
 bz2:
 	rm -rf $(PATHBZ2PKG)
 	make install DESTDIR=$(PATHBZ2PKG)
 	tar -jcvf $(PATHBZ2PKG)/$(PKGNAME)-$(VERSION)-$(RELEASE).tbz2 -C $(PATHBZ2PKG) usr/ etc/
 
 # Build a docker container to run this service
+.PHONY: docker
 docker:
 	rm -rf $(PATHDOCKERPKG)
 	make install DESTDIR=$(PATHDOCKERPKG)
@@ -437,6 +464,7 @@ docker:
 	docker save --output=$(PATHDOCKERPKG)/${VENDOR}-${PROJECT}$(DOCKERSUFFIX)-$(VERSION)-$(RELEASE) ${VENDOR}/${PROJECT}$(DOCKERSUFFIX):latest
 
 # Check if the deployment container starts
+.PHONY: dockertest
 dockertest:
 	# clean any previous container (if any)
 	rm -f target/old_docker_containers.id
@@ -471,9 +499,11 @@ dockertest:
 # Full build and test sequence
 # You may want to change this and remove the options you don't need
 #buildall: deps qa rpm deb bz2 crossbuild
+.PHONY: buildall
 buildall: build qa rpm deb
 
 # Build everything inside a Docker container
+.PHONY: dbuild
 dbuild:
 	@mkdir -p target
 	@rm -rf target/*
@@ -482,6 +512,7 @@ dbuild:
 	@exit `cat target/make.exit`
 
 # Upload linux packages to bintray
+.PHONY: bintray
 bintray: rpm deb
 	@curl -T target/RPM/RPMS/x86_64/${VENDOR}-${PROJECT}-${VERSION}-${RELEASE}.x86_64.rpm -u${APIUSER}:${APIKEY} -H "X-Bintray-Package:${PROJECT}" -H "X-Bintray-Version:${VERSION}" -H "X-Bintray-Publish:1" -H "X-Bintray-Override:1" https://api.bintray.com/content/tecnickcom/rpm/~#VENDOR#~-${PROJECT}-${VERSION}-${RELEASE}.x86_64.rpm
 	@curl -T target/DEB/${VENDOR}-${PROJECT}_${VERSION}-${RELEASE}_amd64.deb -u${APIUSER}:${APIKEY} -H "X-Bintray-Package:${PROJECT}" -H "X-Bintray-Version:${VERSION}" -H "X-Bintray-Debian-Distribution:amd64" -H "X-Bintray-Debian-Component:main" -H "X-Bintray-Debian-Architecture:amd64" -H "X-Bintray-Publish:1" -H "X-Bintray-Override:1" https://api.bintray.com/content/tecnickcom/deb/~#VENDOR#~-${PROJECT}_${VERSION}-${RELEASE}_amd64.deb

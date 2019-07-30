@@ -216,7 +216,7 @@ func checkParams(prm *params) error {
 
 	// Server
 	if prm.serverAddress == "" {
-		return errors.New("The Server address is empty")
+		return errors.New("the Server address is empty")
 	}
 
 	return checkPasswordParams(prm.quantity, prm.length, prm.charset)
@@ -227,17 +227,17 @@ func checkPasswordParams(quantity int, length int, charset string) error {
 
 	charsetLength := len(charset)
 	if charsetLength < 2 || charsetLength > 92 {
-		return errors.New("The charset string must contain between 2 and 92 ASCII characters")
+		return errors.New("the charset string must contain between 2 and 92 ASCII characters")
 	}
 	validChr := regexp.MustCompile("[^" + regexp.QuoteMeta(ValidCharset) + "]")
 	if validChr.MatchString(charset) {
-		return errors.New("The charset string contains invalid characters")
+		return errors.New("the charset string contains invalid characters")
 	}
 	if length < 2 {
-		return errors.New("The length of the passwords to generate must be at least 2")
+		return errors.New("the length of the passwords to generate must be at least 2")
 	}
 	if quantity < 1 {
-		return errors.New("The number of passwords to generate must be at least 1")
+		return errors.New("the number of passwords to generate must be at least 1")
 	}
 
 	return nil
