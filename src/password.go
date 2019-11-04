@@ -21,7 +21,7 @@ func getNewPassword(length int, charset string) string {
 
 	for i := 0; i < length; i++ {
 		rnd, err := rand.Int(rand.Reader, maxValue)
-		if err != nil {
+		if err == nil {
 			password[i] = chars[rnd.Int64()]
 		}
 	}
