@@ -536,6 +536,12 @@ schemathesistest:
 	--base-url='${API_TEST_URL}' \
 	${OPENAPI_FILE}
 
+# Tag the Git repository
+.PHONY: tag
+tag:
+	git tag -a "v$(VERSION)" -m "Version $(VERSION)" && \
+	git push origin --tags
+
 # Run the unit tests
 .PHONY: test
 test: ensuretarget
