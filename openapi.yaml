@@ -1,0 +1,92 @@
+openapi: 3.0.3
+info:
+  title: rndpwd
+  description: Public API
+  contact:
+    email: info@tecnick.com
+  license:
+    name: Internal use only. All rights reserved.
+    url: https://github.com/tecnickcom/rndpwd/blob/main/LICENSE
+  version: 1.0.0
+servers:
+  - url: https://rndpwd:8071/
+tags:
+  - name: ping
+    description: Ping this service
+  - name: random
+    description: generate a random values
+paths:
+  /ping:
+    get:
+      tags:
+        - ping
+      summary: Check if the service is reachable
+      responses:
+        '200':
+          description: The service is reachable
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: OK
+  /password:
+    get:
+      parameters:
+        - $ref: '#/components/parameters/charset'
+        - $ref: '#/components/parameters/length'
+        - $ref: '#/components/parameters/quantity'
+      tags:
+        - random
+      summary: Generates a list of random passwords
+      responses:
+        '200':
+          description: Random passwords
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                description: random passwords
+  /uid:
+    get:
+      tags:
+        - random
+      summary: Generates a random UID
+      responses:
+        '200':
+          description: Random UID
+          content:
+            application/json:
+              schema:
+                type: string
+                description: UID
+components:
+  parameters:
+    charset:
+      in: query
+      name: charset
+      required: false
+      schema:
+        type: string
+        maxLength: 92
+        description: String containing the valid characters for a password
+        example: charset=0123456789abcdefghijklmnopqrstuvwxyz
+    length:
+      description: Password length.
+      in: query
+      name: length
+      required: false
+      schema:
+        type: integer
+        minimum: 2
+        maximum: 64
+    quantity:
+      description: Number passwords to generate.
+      in: query
+      name: quantity
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 10

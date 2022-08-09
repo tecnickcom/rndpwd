@@ -1,6 +1,6 @@
 # Configuration Guide
 
-The rndpwd service can load the configuration either from a local configuration file or remotely via [Consul](https://www.consul.io/) or [Etcd](https://github.com/coreos/etcd).
+The rndpwd service can load the configuration either from a local configuration file or remotely via [Consul](https://www.consul.io/), [Etcd](https://github.com/coreos/etcd) or a single Environmental Variable.
 
 The local configuration file is always loaded before the remote configuration, the latter always overwrites any local setting.
 
@@ -13,21 +13,21 @@ If the *configDir* parameter is not specified, then the program searches for a *
 
 ## Default Configuration
 
-The default configuration file is installed in the **/etc/rndpwd/** folder along with the example configuration file **config.example.json** and the JSON schema **config.schema.json**.
-The example configuration file contains multiple *Service Providers* definitions but all sensitive data has been removed or replaced with "******".
+The default configuration file is installed in the **/etc/rndpwd/** folder (**config.json**) along with the JSON schema **config.schema.json**.
 
 
 ## Remote Configuration
 
-The remote configuration endpoint can be configured either in the local config file or by setting some environmental variables.
-The use of environmental variables is particularly important when the program is running inside a Docker container.
+This program also support secure remote configuration via Consul, Etcd or single environment variable.
+The remote configuration server can be defined either in the local configuration file using the following parameters, or with environment variables:
 
 The configuration fields are:
 
-* **remoteConfigProvider** : remote configuration source ("consul", "etcd")
-* **remoteConfigEndpoint** : remote configuration URL (ip:port)
-* **remoteConfigPath** : remote configuration path in which to search for the configuration file (e.g. "/config/rndpwd")
-* **remoteConfigSecretKeyring** : path to the [OpenPGP](http://openpgp.org/) secret keyring used to decrypt the remote configuration data (e.g. "/etc/rndpwd/configkey.gpg"); if empty a non secure connection will be used instead
+* **remoteConfigProvider**      : remote configuration source ("consul", "etcd", "envvar");
+* **remoteConfigEndpoint**      : remote configuration URL (ip:port);
+* **remoteConfigPath**          : remote configuration path in which to search for the configuration file (e.g. "/config/rndpwd");
+* **remoteConfigSecretKeyring** : path to the [OpenPGP](http://openpgp.org/) secret keyring used to decrypt the remote configuration data (e.g. "/etc/rndpwd/configkey.gpg"); if empty a non secure connection will be used instead;
+* **remoteConfigData**          : base64 encoded JSON configuration data to be used with the "envvar" provider.
 
 The equivalent environment variables are:
 
@@ -35,38 +35,46 @@ The equivalent environment variables are:
 * RNDPWD_REMOTECONFIGENDPOINT
 * RNDPWD_REMOTECONFIGPATH
 * RNDPWD_REMOTECONFIGSECRETKEYRING
+* RNDPWD_REMOTECONFIGDATA
 
 
 ## Configuration Format
 
 The configuration format is a single JSON structure with the following fields:
 
-
-* **remoteConfigProvider** :      Remote configuration source ("consul", "etcd")
-* **remoteConfigEndpoint** :      Remote configuration URL (ip:port)
-* **remoteConfigPath** :          Remote configuration path in which to search for the configuration file (e.g. "/config/rndpwd")
+* **remoteConfigProvider**      : Remote configuration source ("consul", "etcd", "envvar")
+* **remoteConfigEndpoint**      : Remote configuration URL (ip:port)
+* **remoteConfigPath**          : Remote configuration path in which to search for the configuration file (e.g. "/config/rndpwd")
 * **remoteConfigSecretKeyring** : Path to the openpgp secret keyring used to decrypt the remote configuration data (e.g. "/etc/rndpwd/configkey.gpg"); if empty a non secure connection will be used instead
 
+* **enabled**: Enable or disable the service
+
 * **log**:  *Logging settings*
+    * **format**:  Logging format: CONSOLE, JSON
     * **level**:   Defines the default log level: EMERGENCY, ALERT, CRITICAL, ERROR, WARNING, NOTICE, INFO, DEBUG
     * **network**: (OPTIONAL) Network type used by the Syslog (i.e. udp or tcp)
     * **address**: (OPTIONAL) Network address of the Syslog daemon (ip:port) or just (:port)
 
-* **stats**:  *StatsD is used to collect usage metrics*
-    * **prefix**:       StatsD client string prefix that will be used in every bucket name
-    * **network**:      Network type used by the StatsD client (i.e. udp or tcp)
-    * **address**:      Network address of the StatsD daemon (ip:port) or just (:port)
-    * **flush_period**: Sets how often (in milliseconds) the StatsD client's buffer is flushed. When 0 the buffer is only flushed when it is full
+* **monitoring_address**: Monitoring HTTP address (ip:port) or just (:port)
+* **public_address**: Public service HTTP address (ip:port) or just (:port)
 
-* **serverAddress**:              Internal HTTP address (ip:port) or just (:port)
+* **ipify**:  *ipify service client*
+    * **address**:  *Base URL of the service*
+    * **timeout**:  *HTTP client timeout [seconds]*
+
+* **random**: *Settings for the random generator*
+    * **charset**:  *String containing the valid characters for a password*
+    * **length**:   *Length of each password (number of characters or bytes)*
+    * **quantity**: *Number of passwords to return*
+
 
 ## Validate Configuration
 
-The json-spec Python program can be used to check the validity of the configuration file against the JSON schema.
+The jsonschema Python program can be used to check the validity of the configuration file against the JSON schema.
 It can be installed using the Python pip install tool:
 
 ```
-sudo pip install json-spec 
+sudo pip install jsonschema
 ```
 
 Example usage:

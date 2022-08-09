@@ -1,31 +1,24 @@
 language: go
 
-dist: trusty
+dist: bionic
 
 sudo: true
 
 branches:
-  except:
-    - release
-
-branches:
   only:
-    - master
+    - main
     - develop
 
 go:
-  - "1.11.1"
-  - tip
+  - '1.18'
 
-matrix:
-  allow_failures:
-    - go: tip
+services:
+  - docker
 
 before_install:
   - sudo apt-get update || true
   - if [ -n "$GH_USER" ]; then git config --global github.user ${GH_USER}; fi;
   - if [ -n "$GH_TOKEN" ]; then git config --global github.token ${GH_TOKEN}; fi;
-  - go get github.com/mattn/goveralls
 
 addons:
   apt:
@@ -44,14 +37,11 @@ addons:
 
 install:
   - sudo pip install --upgrade pip
-  - pip install --upgrade --user json-spec
+  - pip install --upgrade --user jsonschema
 
 script:
-  - make buildall
+  - echo "$TRAVIS_BUILD_NUMBER" > RELEASE
+  - make mod deps build qa docker dockertest
 
 after_failure:
   - cat ./target/test/report.xml
-
-after_success:
-  - if [ "$TRAVIS_GO_VERSION" = "1.11.1" ]; then $HOME/gopath/bin/goveralls -covermode=count -coverprofile=target/report/coverage.out -service=travis-ci; fi;
-  - if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_GO_VERSION" = "1.11.1" ] && [ -n "$BT_APIUSER" ]; then make bintray APIUSER=${BT_APIUSER} APIKEY=${BT_APIKEY}; fi;

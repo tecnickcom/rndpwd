@@ -11,7 +11,7 @@
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
 # Short-Description: Start rndpwd
-# Description:       Web-service Random Password Generator
+# Description:       Web-Service Random Password Generator
 ### END INIT INFO
 
 CMD="/usr/bin/rndpwd"

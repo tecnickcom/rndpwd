@@ -1,6 +1,6 @@
 #!/usr/bin/make -f
 export DH_VERBOSE=1
-export DH_GOPKG := github.com/tecnickcom/rndpwd
+export DH_GOPKG := https://github.com/tecnickcom/rndpwd
 %:
 	#dh $@ --buildsystem=golang --with=golang
 	dh $@

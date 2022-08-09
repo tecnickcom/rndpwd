@@ -8,7 +8,7 @@
 Name:      %{_package}
 Version:   %{_version}
 Release:   %{_release}%{?dist}
-Summary:   Random Password Generator
+Summary:   Web-Service Random Password Generator
 
 Group:     Applications/Services
 License:   %{_docpath}/LICENSE
@@ -19,7 +19,7 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-%(%{__id_u} -n)
 Provides:  %{gh_project} = %{version}
 
 %description
-Web-service Random Password Generator
+Web-Service Random Password Generator
 
 %build
 #(cd %{_current_directory} && make build)
@@ -30,7 +30,6 @@ rm -rf $RPM_BUILD_ROOT
 
 %clean
 rm -rf $RPM_BUILD_ROOT
-(cd %{_current_directory} && make clean)
 
 %files
 %attr(-,root,root) %{_binpath}/%{_project}
@@ -42,6 +41,6 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_configpath}*
 
 %changelog
-* Wed Nov 18 2015 Tecnick.com <info@tecnick.com> 1.0.0-1
+* Fri Dec 04 2020 Nicola Asuni <info@tecnick.com> 1.0.0-1
 - Initial Commit
 

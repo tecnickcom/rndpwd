@@ -1,21 +1,24 @@
 {
-  "remoteConfigProvider" : "",
-  "remoteConfigEndpoint" : "",
-  "remoteConfigPath" : "",
-  "remoteConfigSecretKeyring" : "",
+  "remoteConfigProvider": "",
+  "remoteConfigEndpoint": "",
+  "remoteConfigPath": "",
+  "remoteConfigSecretKeyring": "",
+  "enabled": true,
   "log": {
+    "format": "JSON",
     "level": "DEBUG",
     "network": "",
     "address": ""
   },
-  "stats": {
-    "prefix": "rndpwd",
-    "network": "udp",
-    "address": ":8125",
-    "flush_period": 100
+  "monitoring_address": ":8072",
+  "public_address": ":8071",
+  "ipify": {
+    "address": "https://test.ipify.url.invalid",
+    "timeout": 1
   },
-  "serverAddress": ":8017",
-  "charset":"!#$%&()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ^_abcdefghijklmnopqrstuvwxyz~",
-  "length": 32,
-  "quantity": 10
+  "random": {
+    "charset": "!#$%&()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ^_abcdefghijklmnopqrstuvwxyz~",
+    "length": 32,
+    "quantity": 10
+  }
 }

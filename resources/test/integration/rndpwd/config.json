@@ -1,0 +1,20 @@
+{
+  "enabled": true,
+  "log": {
+    "format": "JSON",
+    "level": "DEBUG",
+    "network": "",
+    "address": ""
+  },
+  "monitoring_address": ":8072",
+  "public_address": ":8071",
+  "ipify": {
+    "address": "http://rndpwd_smocker_ipify:8080",
+    "timeout": 2
+  },
+  "random": {
+    "charset": "!#$%&()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ^_abcdefghijklmnopqrstuvwxyz~",
+    "length": 32,
+    "quantity": 10
+  }
+}

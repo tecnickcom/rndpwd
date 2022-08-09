@@ -1,0 +1,24 @@
+{
+  "remoteConfigProvider": "",
+  "remoteConfigEndpoint": "",
+  "remoteConfigPath": "",
+  "remoteConfigSecretKeyring": "",
+  "enabled": true,
+  "log": {
+    "format": "JSON",
+    "level": "DEBUG",
+    "network": "",
+    "address": ""
+  },
+  "monitoring_address": ":invalid",
+  "public_address": ":8071",
+  "ipify": {
+    "address": "https://test.ipify.url.invalid",
+    "timeout": 1
+  },
+  "random": {
+    "charset": "!#$%&()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ^_abcdefghijklmnopqrstuvwxyz~",
+    "length": 32,
+    "quantity": 10
+  }
+}

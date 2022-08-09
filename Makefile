@@ -1,20 +1,20 @@
 # MAKEFILE
 #
-# @author      Nicola Asuni <info@tecnick.com>
+# @author      Nicola Asuni
 # @link        https://github.com/tecnickcom/rndpwd
 # ------------------------------------------------------------------------------
 
-# Use bash as shell (Note: Ubuntu now uses dash which doesn't support PIPESTATUS).
 SHELL=/bin/bash
+.SHELLFLAGS=-o pipefail -c
 
 # CVS path (path to the parent dir containing the project)
-CVSPATH=github.com/tecnickcom
+CVSPATH=github.com/tecnickcom/rndpwd
 
 # Project owner
-OWNER=Tecnick.com
+OWNER=rndpwd
 
 # Project vendor
-VENDOR=tecnickcom
+VENDOR=rndpwd
 
 # Project name
 PROJECT=rndpwd
@@ -31,13 +31,13 @@ PKGNAME=${VENDOR}-${PROJECT}
 # Current directory
 CURRENTDIR=$(dir $(realpath $(firstword $(MAKEFILE_LIST))))
 
+# Target directory
+TARGETDIR=$(CURRENTDIR)target
+
+# Directory where to store binary utility tools
+BINUTIL=$(TARGETDIR)/binutil
+
 # GO lang path
-ifneq ($(GOPATH),)
-	ifeq ($(findstring $(GOPATH),$(CURRENTDIR)),)
-		# the defined GOPATH is not valid
-		GOPATH=
-	endif
-endif
 ifeq ($(GOPATH),)
 	# extract the GOPATH
 	GOPATH=$(firstword $(subst /src/, ,$(CURRENTDIR)))
@@ -52,9 +52,11 @@ BINPATH=usr/bin/
 # Path for configuration files
 CONFIGPATH=etc/$(PROJECT)/
 
-# Path for ssl root certs
-#SSLCONFIGPATH=etc/ssl/
-SSLCONFIGPATH=
+# Path for custom root CA certificates
+SSLCONFIGPATH=etc/ssl/
+
+# Search paths for system root CA certificates to include
+CACERTPATH=/etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt /etc/ssl/ca-bundle.pem /etc/pki/tls/cacert.pem /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem /etc/ssl/cert.pem
 
 # Path for init script
 INITPATH=etc/init.d/
@@ -83,25 +85,42 @@ PATHINSTDOC=$(DESTDIR)/$(DOCPATH)
 # Installation path for man pages
 PATHINSTMAN=$(DESTDIR)/$(MANPATH)
 
+# DOCKER Packaging path (where BZ2s will be stored)
+PATHDOCKERPKG=$(CURRENTDIR)/target/DOCKER
+
 # RPM Packaging path (where RPMs will be stored)
 PATHRPMPKG=$(CURRENTDIR)/target/RPM
 
 # DEB Packaging path (where DEBs will be stored)
 PATHDEBPKG=$(CURRENTDIR)/target/DEB
 
-# BZ2 Packaging path (where BZ2s will be stored)
-PATHBZ2PKG=$(CURRENTDIR)/target/BZ2
+# Prefix for the published docker container name
+DOCKERPREFIX=
 
-# DOCKER Packaging path (where BZ2s will be stored)
-PATHDOCKERPKG=$(CURRENTDIR)/target/DOCKER
+# Suffix for the published docker container name
+DOCKERSUFFIX=
 
-# Cross compilation targets
-CCTARGETS=darwin/386 darwin/amd64 freebsd/386 freebsd/amd64 freebsd/arm linux/386 linux/amd64 linux/arm openbsd/386 openbsd/amd64 windows/386 windows/amd64
+# Docker repository for the dev environment
+DOCKER_REGISTRY_DEV=
 
-# docker image name for consul (used during testing)
-CONSUL_DOCKER_IMAGE_NAME=consul_$(VENDOR)_$(PROJECT)$(DOCKERSUFFIX)
+# Docker repository for the prod environment
+DOCKER_REGISTRY_PROD=
+
+# Set default AWS region (if using AWS for deployments)
+ifeq ($(AWS_DEFAULT_REGION),)
+	AWS_DEFAULT_REGION=eu-west-1
+endif
+
+# AWS command to get the ECR Docker login for the current environment
+# AWS_ECR_GET_LOGIN_ENV="aws ecr get-login --no-include-email --region ${AWS_DEFAULT_REGION} | sed 's|https://||'"
+AWS_ECR_GET_LOGIN_ENV="echo skip"
+
+# AWS command to get the ECR Docker login for DEV environment
+# AWS_ECR_GET_LOGIN_DEV="aws --profile YOURDEVPROFILE ecr get-login --no-include-email --region ${AWS_DEFAULT_REGION} | sed 's|https://||'"
+AWS_ECR_GET_LOGIN_DEV="echo skip"
 
 # STATIC is a flag to indicate whether to build using static or dynamic linking
+STATIC=1
 ifeq ($(STATIC),0)
 	STATIC_TAG=dynamic
 	STATIC_FLAG=
@@ -110,7 +129,78 @@ else
 	STATIC_FLAG=-static
 endif
 
-# --- MAKE TARGETS ---
+# Docker tag
+DOCKERTAG="$(VERSION)-$(RELEASE)"
+ifeq ($(RELEASE),0)
+	DOCKERTAG="latest"
+endif
+
+# Docker command
+ifeq ($(DOCKER),)
+	DOCKER=docker
+endif
+
+# Common commands
+GO=GOPATH=$(GOPATH) GOPRIVATE=$(CVSPATH) go
+GOFMT=gofmt
+GOTEST=GOPATH=$(GOPATH) gotest
+GODOC=GOPATH=$(GOPATH) godoc
+
+# Current operating system and architecture as one string.
+GOOSARCH=$(shell go env GOOS GOARCH | tr -d \\n)
+
+# OS and Architecture used to build the Go binary for Docker.
+LINUXGOBUILDENV=GOOS=linux GOARCH=amd64
+
+# Environment variables for the go build command
+GOBUILDENV=
+
+# Directory containing the source code
+CMDDIR=./cmd
+SRCDIR=./internal
+
+# List of packages
+GOPKGS=$(shell $(GO) list $(CMDDIR)/... $(SRCDIR)/...)
+
+# Enable junit report when not in LOCAL mode
+ifeq ($(strip $(DEVMODE)),LOCAL)
+	TESTEXTRACMD=&& $(GO) tool cover -func=$(TARGETDIR)/report/coverage.out
+else
+	TESTEXTRACMD=2>&1 | tee >(PATH=$(GOPATH)/bin:$(PATH) go-junit-report > $(TARGETDIR)/test/report.xml); test $${PIPESTATUS[0]} -eq 0
+endif
+
+# Specify api test configuration files to execute (venom YAML files or * for all)
+ifeq ($(API_TEST_FILE),)
+	API_TEST_FILE=*.yaml
+endif
+
+# Deployment environment
+ifeq ($(DEPLOY_ENV),)
+	DEPLOY_ENV=dev
+endif
+
+# INT - integration environment via docker-compose
+ifeq ($(DEPLOY_ENV), int)
+	RNDPWD_URL=http://rndpwd:8071
+	RNDPWD_MONITORING_URL=http://rndpwd:8072
+	API_TEST_FILE=*.yaml
+endif
+
+# Development environment
+ifeq ($(DEPLOY_ENV), dev)
+	DOCKER_REGISTRY=${DOCKER_REGISTRY_DEV}
+	RNDPWD_URL=http://rndpwd:8071
+	RNDPWD_MONITORING_URL=http://rndpwd:8072
+	API_TEST_FILE=*.yaml
+endif
+
+# Production environment
+ifeq ($(DEPLOY_ENV), prod)
+	DOCKER_REGISTRY=${DOCKER_REGISTRY_PROD}
+	RNDPWD_URL=http://rndpwd:8071
+	RNDPWD_MONITORING_URL=http://rndpwd:8072
+	API_TEST_FILE=*.yaml
+endif
 
 # Display general help about this command
 .PHONY: help
@@ -120,301 +210,89 @@ help:
 	@echo "GOPATH=$(GOPATH)"
 	@echo "The following commands are available:"
 	@echo ""
-	@echo "    make qa          : Run all the tests and static analysis reports"
-	@echo "    make test        : Run the unit tests"
+	@echo "    make apitest       : Execute API tests"
+	@echo "    make buildall      : Full build and test sequence"
+	@echo "    make build         : Compile the application"
+	@echo "    make clean         : Remove any build artifact"
+	@echo "    make confcheck     : Check the configuration files"
+	@echo "    make coverage      : Generate the coverage report"
+	@echo "    make dbuild        : Build everything inside a Docker container"
+	@echo "    make deb           : Build a DEB package"
+	@echo "    make deps          : Get dependencies"
+	@echo "    make docker        : Build a scratch docker container to run this service"
+	@echo "    make dockerpromote : Promote docker image from  DEV to PROD reporitory"
+	@echo "    make dockerpush    : Push docker container to a remote repository"
+	@echo "    make dockertest    : Test the newly built docker container"
+	@echo "    make format        : Format the source code"
+	@echo "    make generate      : Generate go code automatically"
+	@echo "    make install       : Install this application"
+	@echo "    make linter        : Check code against multiple linters"
+	@echo "    make mod           : Download dependencies"
+	@echo "    make modupdate     : Update dependencies"
+	@echo "    make openapitest   : Test the OpenAPI specification"
+	@echo "    make qa            : Run all tests and static analysis tools"
+	@echo "    make rpm           : Build an RPM package"
+	@echo "    make test          : Run unit tests"
 	@echo ""
-	@echo "    make format      : Format the source code"
-	@echo "    make fmtcheck    : Check if the source code has been formatted"
-	@echo "    make confcheck   : Check the JSON configuration files against the schema"
-	@echo "    make vet         : Check for suspicious constructs"
-	@echo "    make lint        : Check for style errors"
-	@echo "    make coverage    : Generate the coverage report"
-	@echo "    make cyclo       : Generate the cyclomatic complexity report"
-	@echo "    make ineffassign : Detect ineffectual assignments"
-	@echo "    make misspell    : Detect commonly misspelled words in source files"
-	@echo "    make structcheck : Find unused struct fields"
-	@echo "    make varcheck    : Find unused global variables and constants"
-	@echo "    make errcheck    : Check that error return values are used"
-	@echo "    make staticcheck : Suggest code simplifications"
-	@echo "    make astscan     : GO AST scanner"
-	@echo ""
-	@echo "    make docs        : Generate source code documentation"
-	@echo ""
-	@echo "    make deps        : Get the dependencies"
-	@echo "    make build       : Compile the application"
-	@echo "    make clean       : Remove any build artifact"
-	@echo "    make nuke        : Deletes any intermediate file"
-	@echo "    make install     : Install this application"
-	@echo ""
-	@echo "    make rpm         : Build an RPM package"
-	@echo "    make deb         : Build a DEB package"
-	@echo "    make bz2         : Build a tar bz2 (tbz2) compressed archive"
-	@echo "    make docker      : Build a scratch docker container to run this service"
-	@echo "    make dockertest  : Test the newly built docker container"
-	@echo ""
-	@echo "    make buildall    : Full build and test sequence"
-	@echo "    make dbuild      : Build everything inside a Docker container"
+	@echo "Use DEVMODE=LOCAL for human friendly output."
+	@echo "To test and build everything from scratch:"
+	@echo "DEVMODE=LOCAL make format clean mod deps generate qa build docker dockertest"
 	@echo ""
 
 # Alias for help target
 all: help
 
-# Run the unit tests
-.PHONY: test
-test:
-	@mkdir -p target/test
-	@mkdir -p target/report
-	GOPATH=$(GOPATH) \
-	go test \
+# Run venom tests (https://github.com/ovh/venom)
+.PHONY: apitest
+apitest:
+	$(MAKE) venomtest API_TEST_DIR=monitoring API_TEST_URL=${RNDPWD_MONITORING_URL} API_TEST_FILE=api.yaml
+	$(MAKE) venomtest API_TEST_DIR=public API_TEST_URL=${RNDPWD_URL} API_TEST_FILE=${API_TEST_FILE}
+
+# Full build and test sequence
+# You may want to change this and remove the options you don't need
+#buildall: deps qa rpm deb bz2 crossbuild
+.PHONY: buildall
+buildall: build qa docker
+
+# Compile the application
+.PHONY: build
+build:
+	CGO_ENABLED=0 $(GOBUILDENV) \
+	$(GO) build \
 	-tags ${STATIC_TAG} \
-	-covermode=atomic \
-	-bench=. \
-	-race \
-	-cpuprofile=target/report/cpu.out \
-	-memprofile=target/report/mem.out \
-	-mutexprofile=target/report/mutex.out \
-	-coverprofile=target/report/coverage.out \
-	-v ./src | \
-	tee >(PATH=$(GOPATH)/bin:$(PATH) go-junit-report > target/test/report.xml); \
-	test $${PIPESTATUS[0]} -eq 0
-
-# Format the source code
-.PHONY: format
-format:
-	@find ./src -type f -name "*.go" -exec gofmt -s -w {} \;
-
-# Check if the source code has been formatted
-.PHONY: fmtcheck
-fmtcheck:
-	@mkdir -p target
-	@find ./src -type f -name "*.go" -exec gofmt -s -d {} \; | tee target/format.diff
-	@test ! -s target/format.diff || { echo "ERROR: the source code has not been formatted - please use 'make format' or 'gofmt'"; exit 1; }
-
-# Validate JSON configuration files against the JSON schema
-.PHONY: confcheck
-confcheck:
-	json validate --schema-file=resources/etc/${PROJECT}/config.schema.json --document-file=resources/test/etc/${PROJECT}/config.json
-	json validate --schema-file=resources/etc/${PROJECT}/config.schema.json --document-file=resources/etc/${PROJECT}/config.json
-
-# Check for syntax errors
-.PHONY: vet
-vet:
-	GOPATH=$(GOPATH) \
-	go vet ./src
-
-# Check for style errors
-.PHONY: lint
-lint:
-	GOPATH=$(GOPATH) PATH=$(GOPATH)/bin:$(PATH) golint ./src
-
-# Generate the coverage report
-.PHONY: coverage
-coverage:
-	@mkdir -p target/report
-	GOPATH=$(GOPATH) \
-	go tool cover -html=target/report/coverage.out -o target/report/coverage.html
-
-# Report cyclomatic complexity
-.PHONY: cyclo
-cyclo:
-	@mkdir -p target/report
-	GOPATH=$(GOPATH) gocyclo -avg ./src | tee target/report/cyclo.txt ; test $${PIPESTATUS[0]} -eq 0
-
-# Detect ineffectual assignments
-.PHONY: ineffassign
-ineffassign:
-	@mkdir -p target/report
-	GOPATH=$(GOPATH) ineffassign ./src | tee target/report/ineffassign.txt ; test $${PIPESTATUS[0]} -eq 0
-
-# Detect commonly misspelled words in source files
-.PHONY: misspell
-misspell:
-	@mkdir -p target/report
-	GOPATH=$(GOPATH) misspell -error ./src  | tee target/report/misspell.txt ; test $${PIPESTATUS[0]} -eq 0
-
-# Find unused struct fields.
-.PHONY: structcheck
-structcheck:
-	@mkdir -p target/report
-	GOPATH=$(GOPATH) structcheck -a ./src  | tee target/report/structcheck.txt
-
-# Find unused global variables and constants.
-.PHONY: varcheck
-varcheck:
-	@mkdir -p target/report
-	GOPATH=$(GOPATH) varcheck -e ./src  | tee target/report/varcheck.txt
-
-# Check that error return values are used.
-.PHONY: errcheck
-errcheck:
-	@mkdir -p target/report
-	GOPATH=$(GOPATH) errcheck ./src  | tee target/report/errcheck.txt
-
-# Suggest code simplifications"
-.PHONY: staticcheck
-staticcheck:
-	@mkdir -p target/report
-	GOPATH=$(GOPATH) staticcheck ./src  | tee target/report/staticcheck.txt
-
-# AST scanner
-.PHONY: astscan
-astscan:
-	@mkdir -p target/report
-	GOPATH=$(GOPATH) gosec ./src/... | tee target/report/astscan.txt ; test $${PIPESTATUS[0]} -eq 0 || true
-
-# Generate source docs
-.PHONY: docs
-docs:
-	@mkdir -p target/docs
-	nohup sh -c 'GOPATH=$(GOPATH) godoc -http=127.0.0.1:6060' > target/godoc_server.log 2>&1 &
-	wget --directory-prefix=target/docs/ --execute robots=off --retry-connrefused --recursive --no-parent --adjust-extension --page-requisites --convert-links http://127.0.0.1:6060/pkg/github.com/${VENDOR}/${PROJECT}/ ; kill -9 `lsof -ti :6060`
-	@echo '<html><head><meta http-equiv="refresh" content="0;./127.0.0.1:6060/pkg/'${CVSPATH}'/'${PROJECT}'/index.html"/></head><a href="./127.0.0.1:6060/pkg/'${CVSPATH}'/'${PROJECT}'/index.html">'${PKGNAME}' Documentation ...</a></html>' > target/docs/index.html
-
-# Alias to run targets: fmtcheck test vet lint coverage
-.PHONY: qa
-qa: fmtcheck confcheck test vet lint coverage cyclo ineffassign misspell structcheck varcheck errcheck staticcheck astscan
-
-# --- INSTALL ---
-
-# Get the dependencies
-.PHONY: deps
-deps:
-	GOPATH=$(GOPATH) go get -tags ${STATIC_TAG} -v ./src
-	GOPATH=$(GOPATH) go get github.com/inconshreveable/mousetrap
-	GOPATH=$(GOPATH) go get golang.org/x/lint/golint
-	GOPATH=$(GOPATH) go get github.com/jstemmer/go-junit-report
-	GOPATH=$(GOPATH) go get github.com/axw/gocov/gocov
-	GOPATH=$(GOPATH) go get github.com/fzipp/gocyclo
-	GOPATH=$(GOPATH) go get github.com/gordonklaus/ineffassign
-	GOPATH=$(GOPATH) go get github.com/client9/misspell/cmd/misspell
-	GOPATH=$(GOPATH) go get github.com/opennota/check/cmd/structcheck
-	GOPATH=$(GOPATH) go get github.com/opennota/check/cmd/varcheck
-	GOPATH=$(GOPATH) go get github.com/kisielk/errcheck
-	GOPATH=$(GOPATH) go get honnef.co/go/tools/cmd/staticcheck
-	GOPATH=$(GOPATH) go get github.com/securego/gosec/cmd/gosec/...
-
-# Install this application
-.PHONY: install
-install: uninstall
-	mkdir -p $(PATHINSTBIN)
-	cp -r ./target/${BINPATH}* $(PATHINSTBIN)
-	find $(PATHINSTBIN) -type d -exec chmod 755 {} \;
-	find $(PATHINSTBIN) -type f -exec chmod 755 {} \;
-	mkdir -p $(PATHINSTDOC)
-	cp -f ./LICENSE $(PATHINSTDOC)
-	cp -f ./README.md $(PATHINSTDOC)
-	cp -f ./CONFIG.md $(PATHINSTDOC)
-	cp -f ./VERSION $(PATHINSTDOC)
-	cp -f ./RELEASE $(PATHINSTDOC)
-	chmod -R 644 $(PATHINSTDOC)*
-ifneq ($(strip $(INITPATH)),)
-	mkdir -p $(PATHINSTINIT)
-	cp -ru ./resources/${INITPATH}* $(PATHINSTINIT)
-	find $(PATHINSTINIT) -type d -exec chmod 755 {} \;
-	find $(PATHINSTINIT) -type f -exec chmod 755 {} \;
-endif
-ifneq ($(strip $(CONFIGPATH)),)
-	mkdir -p $(PATHINSTCFG)
-	touch -c $(PATHINSTCFG)*
-	cp -ru ./resources/${CONFIGPATH}* $(PATHINSTCFG)
-	find $(PATHINSTCFG) -type d -exec chmod 755 {} \;
-	find $(PATHINSTCFG) -type f -exec chmod 644 {} \;
-endif
-ifneq ($(strip $(MANPATH)),)
-	mkdir -p $(PATHINSTMAN)
-	cat ./resources/${MANPATH}${PROJECT}.1 | gzip -9 > $(PATHINSTMAN)${PROJECT}.1.gz
-	find $(PATHINSTMAN) -type f -exec chmod 644 {} \;
-endif
-
-# Install SSL certificates
-.PHONY: installssl
-installssl: 
-ifneq ($(strip $(SSLCONFIGPATH)),)
-	mkdir -p $(PATHINSTSSLCFG)
-	touch -c $(PATHINSTSSLCFG)*
-	cp -ru ./resources/${SSLCONFIGPATH}* $(PATHINSTSSLCFG)
-	find $(PATHINSTSSLCFG) -type d -exec chmod 755 {} \;
-	find $(PATHINSTSSLCFG) -type f -exec chmod 644 {} \;
-endif
-
-# Remove all installed files (excluding configuration files)
-.PHONY: uninstall
-uninstall:
-	rm -rf $(PATHINSTBIN)$(PROJECT)
-	rm -rf $(PATHINSTDOC)
+	-ldflags '-w -s -X main.programVersion=${VERSION} -X main.programRelease=${RELEASE} -extldflags "-fno-PIC ${STATIC_FLAG}"' \
+	-o ./target/${BINPATH}$(PROJECT) $(CMDDIR)
 
 # Remove any build artifact
 .PHONY: clean
 clean:
-	GOPATH=$(GOPATH) go clean ./...
+	rm -rf $(TARGETDIR)
 
-# Deletes any intermediate file
-.PHONY: nuke
-nuke:
-	rm -rf ./target
-	GOPATH=$(GOPATH) go clean -i ./...
+# Validate JSON configuration files against the JSON schema
+.PHONY: confcheck
+confcheck:
+	jsonschema -i resources/test/etc/${PROJECT}/config.json resources/etc/${PROJECT}/config.schema.json
+	jsonschema -i resources/etc/${PROJECT}/config.json resources/etc/${PROJECT}/config.schema.json
 
-# Compile the application
-.PHONY: build
-build: deps
-	GOPATH=$(GOPATH) \
-	go build \
-	-tags ${STATIC_TAG} \
-	-ldflags '-linkmode external -extldflags ${STATIC_FLAG} -w -s -X main.ProgramVersion=${VERSION} -X main.ProgramRelease=${RELEASE}' \
-	-o ./target/${BINPATH}$(PROJECT) ./src
-ifneq (${UPXENABLED},)
-	upx --brute ./target/${BINPATH}$(PROJECT)
-endif
+# Generate the coverage report
+.PHONY: coverage
+coverage: ensuretarget
+	$(GO) tool cover -html=$(TARGETDIR)/report/coverage.out -o $(TARGETDIR)/report/coverage.html
 
-# Cross-compile the application for several platforms
-.PHONY: crossbuild
-crossbuild: deps
-	@echo "" > target/ccfailures.txt
-	$(foreach TARGET,$(CCTARGETS), \
-		$(eval GOOS = $(word 1,$(subst /, ,$(TARGET)))) \
-		$(eval GOARCH = $(word 2,$(subst /, ,$(TARGET)))) \
-		$(shell which mkdir) -p target/$(TARGET) && \
-		GOOS=${GOOS} \
-		GOARCH=${GOARCH} \
-		GOPATH=$(GOPATH) \
-		go build \
-		-tags ${STATIC_TAG} \
-		-ldflags '-s -extldflags ${STATIC_FLAG} -w -s -X main.ProgramVersion=${VERSION} -X main.ProgramRelease=${RELEASE}' \
-		-o ./target/${GOOS}/${GOARCH}/$(PROJECT) ./src \
-		|| echo $(TARGET) >> target/ccfailures.txt ; \
-	)
-ifneq ($(strip $(cat target/ccfailures.txt)),)
-	echo target/ccfailures.txt
-	exit 1
-endif
-
-# --- PACKAGING ---
-
-# Build the RPM package for RedHat-like Linux distributions
-.PHONY: rpm
-rpm:
-	rm -rf $(PATHRPMPKG)
-	rpmbuild \
-	--define "_topdir $(PATHRPMPKG)" \
-	--define "_vendor $(VENDOR)" \
-	--define "_owner $(OWNER)" \
-	--define "_project $(PROJECT)" \
-	--define "_package $(PKGNAME)" \
-	--define "_version $(VERSION)" \
-	--define "_release $(RELEASE)" \
-	--define "_current_directory $(CURRENTDIR)" \
-	--define "_binpath /$(BINPATH)" \
-	--define "_docpath /$(DOCPATH)" \
-	--define "_configpath /$(CONFIGPATH)" \
-	--define "_initpath /$(INITPATH)" \
-	--define "_manpath /$(MANPATH)" \
-	-bb resources/rpm/rpm.spec
+# Build everything inside a Docker container
+.PHONY: dbuild
+dbuild: dockerdev
+	@mkdir -p $(TARGETDIR)
+	@rm -rf $(TARGETDIR)/*
+	@echo 0 > $(TARGETDIR)/make.exit
+	CVSPATH=$(CVSPATH) VENDOR=$(VENDOR) PROJECT=$(PROJECT) MAKETARGET='$(MAKETARGET)' $(CURRENTDIR)/dockerbuild.sh
+	@exit `cat $(TARGETDIR)/make.exit`
 
 # Build the DEB package for Debian-like Linux distributions
 .PHONY: deb
 deb:
 	rm -rf $(PATHDEBPKG)
-	make install DESTDIR=$(PATHDEBPKG)/$(PKGNAME)-$(VERSION)
+	$(MAKE) install DESTDIR=$(PATHDEBPKG)/$(PKGNAME)-$(VERSION)
 	rm -f $(PATHDEBPKG)/$(PKGNAME)-$(VERSION)/$(DOCPATH)LICENSE
 	tar -zcvf $(PATHDEBPKG)/$(PKGNAME)_$(VERSION).orig.tar.gz -C $(PATHDEBPKG)/ $(PKGNAME)-$(VERSION)
 	cp -rf ./resources/debian $(PATHDEBPKG)/$(PKGNAME)-$(VERSION)/debian
@@ -446,73 +324,247 @@ endif
 	echo "embedded-library $(BINPATH)$(PROJECT): libyaml" >> $(PATHDEBPKG)/$(PKGNAME)-$(VERSION)/debian/$(PKGNAME).lintian-overrides
 	cd $(PATHDEBPKG)/$(PKGNAME)-$(VERSION) && debuild -us -uc
 
-# Build a compressed bz2 archive
-.PHONY: bz2
-bz2:
-	rm -rf $(PATHBZ2PKG)
-	make install DESTDIR=$(PATHBZ2PKG)
-	tar -jcvf $(PATHBZ2PKG)/$(PKGNAME)-$(VERSION)-$(RELEASE).tbz2 -C $(PATHBZ2PKG) usr/ etc/
+# Get the test dependencies
+.PHONY: deps
+deps: ensuretarget
+	curl --silent --show-error --fail --location https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(BINUTIL) v1.48.0
+	$(GO) install github.com/rakyll/gotest
+	$(GO) install github.com/jstemmer/go-junit-report
+	$(GO) install github.com/golang/mock/mockgen
 
 # Build a docker container to run this service
 .PHONY: docker
-docker:
+docker: dockerdir dockerbuild
+
+# Build the docker container in the target/DOCKER directory
+.PHONY: dockerbuild
+dockerbuild:
+	$(DOCKER) build --no-cache --tag=${VENDOR}/${PROJECT}$(DOCKERSUFFIX):latest $(PATHDOCKERPKG)
+
+# Delete the Docker image
+.PHONY: dockerdelete
+dockerdelete:
+	$(DOCKER) rmi -f `docker images "${VENDOR}/${PROJECT}$(DOCKERSUFFIX):latest" -q`
+
+# Build a base development Docker image
+.PHONY: dockerdev
+dockerdev:
+	docker build --pull --tag ${VENDOR}/dev_${PROJECT} --file ./resources/docker/Dockerfile.dev ./resources/docker/
+
+# Create the directory with docker files to be packaged
+.PHONY: dockerdir
+dockerdir:
+ifneq ($(GOOSARCH),linuxamd64)
+	GOBUILDENV=$(LINUXGOBUILDENV) $(MAKE) build
+endif
 	rm -rf $(PATHDOCKERPKG)
-	make install DESTDIR=$(PATHDOCKERPKG)
-	make installssl DESTDIR=$(PATHDOCKERPKG)
-	cp resources/DockerDeploy/Dockerfile $(PATHDOCKERPKG)/Dockerfile
-	docker build --no-cache --tag=${VENDOR}/${PROJECT}$(DOCKERSUFFIX):latest $(PATHDOCKERPKG)
-	docker save --output=$(PATHDOCKERPKG)/${VENDOR}-${PROJECT}$(DOCKERSUFFIX)-$(VERSION)-$(RELEASE) ${VENDOR}/${PROJECT}$(DOCKERSUFFIX):latest
+	$(MAKE) install DESTDIR=$(PATHDOCKERPKG)
+	$(MAKE) installssl DESTDIR=$(PATHDOCKERPKG)
+	cp resources/docker/Dockerfile.run $(PATHDOCKERPKG)/Dockerfile
 
-# Check if the deployment container starts
+# Promote docker image from DEV to PROD
+.PHONY: dockerpromote
+dockerpromote:
+	$(shell eval ${AWS_ECR_GET_LOGIN_ENV})
+	$(shell eval ${AWS_ECR_GET_LOGIN_DEV})
+	$(DOCKER) pull "${DOCKER_REGISTRY_DEV}/${DOCKERPREFIX}${PROJECT}$(DOCKERSUFFIX):$(VERSION)-$(RELEASE)"
+	$(DOCKER) tag "${DOCKER_REGISTRY_DEV}/${DOCKERPREFIX}${PROJECT}$(DOCKERSUFFIX):$(VERSION)-$(RELEASE)" "${DOCKER_REGISTRY_PROD}/${DOCKERPREFIX}${PROJECT}$(DOCKERSUFFIX):$(VERSION)-$(RELEASE)"
+	$(DOCKER) push "${DOCKER_REGISTRY_PROD}/${DOCKERPREFIX}${PROJECT}$(DOCKERSUFFIX):$(VERSION)-$(RELEASE)"
+
+# Push docker container to the remote repository
+.PHONY: dockerpush
+dockerpush:
+	$(shell eval ${AWS_ECR_GET_LOGIN_ENV})
+	$(DOCKER) tag "${VENDOR}/${PROJECT}$(DOCKERSUFFIX):latest" "${DOCKER_REGISTRY}/${DOCKERPREFIX}${PROJECT}$(DOCKERSUFFIX):$(VERSION)-$(RELEASE)"
+	$(DOCKER) push "${DOCKER_REGISTRY}/${DOCKERPREFIX}${PROJECT}$(DOCKERSUFFIX):$(VERSION)-$(RELEASE)"
+	$(DOCKER) tag "${VENDOR}/${PROJECT}$(DOCKERSUFFIX):latest" "${DOCKER_REGISTRY}/${DOCKERPREFIX}${PROJECT}$(DOCKERSUFFIX):latest"
+	$(DOCKER) push "${DOCKER_REGISTRY}/${DOCKERPREFIX}${PROJECT}$(DOCKERSUFFIX):latest"
+
 .PHONY: dockertest
-dockertest:
-	# clean any previous container (if any)
-	rm -f target/old_docker_containers.id
-	docker ps -a | grep $(CONSUL_DOCKER_IMAGE_NAME) | awk '{print $$1}' >> target/old_docker_containers.id
-	docker ps -a | grep ${VENDOR}/${PROJECT}$(DOCKERSUFFIX) | awk '{print $$1}' >> target/old_docker_containers.id
-	docker stop `cat target/old_docker_containers.id` 2> /dev/null || true
-	docker rm `cat target/old_docker_containers.id` 2> /dev/null || true
-	# start Consul service inside a Docker container
-	docker run --detach=true --name=$(CONSUL_DOCKER_IMAGE_NAME) --publish=8500 --hostname=test.consul progrium/consul -server -bootstrap > target/consul_docker_container.id
-	sleep 3
-	# push Consul configuration
-	docker inspect --format='{{(index (index .NetworkSettings.Ports "8500/tcp") 0).HostPort}}' `cat target/consul_docker_container.id` > target/consul_docker_container.port
-	curl --request PUT --data @resources/test/etc/rndpwd/config.json http://127.0.0.1:`cat target/consul_docker_container.port`/v1/kv/config/rndpwd
-	# Run the program container
-	docker run --detach=true --net="host" --tty=true \
-	--env="RNDPWD_REMOTECONFIGPROVIDER=consul" \
-	--env="RNDPWD_REMOTECONFIGENDPOINT=127.0.0.1:`cat target/consul_docker_container.port`" \
-	--env="RNDPWD_REMOTECONFIGPATH=/config/rndpwd" \
-	--env="RNDPWD_REMOTECONFIGSECRETKEYRING=" \
-	${VENDOR}/${PROJECT}$(DOCKERSUFFIX):latest > target/project_docker_container.id || true
-	sleep 3
-	# check if the container is working
-	docker inspect -f {{.State.Running}} `cat target/project_docker_container.id` > target/project_docker_container.run || true
-	# remove containers
-	docker stop `cat target/project_docker_container.id` || true
-	docker logs `cat target/project_docker_container.id` || true
-	docker rm `cat target/project_docker_container.id` || true
-	docker stop `cat target/consul_docker_container.id` || true
-	docker rm `cat target/consul_docker_container.id` || true
-	@exit `grep -ic "false" target/project_docker_container.run`
+dockertest: dockertestenv dockerdev
+	test -f "$(BINUTIL)/dockerize" || curl --silent --show-error --fail --location https://github.com/jwilder/dockerize/releases/download/v0.6.1/dockerize-linux-amd64-v0.6.1.tar.gz | tar -xz -C $(BINUTIL)
+	@echo 0 > $(TARGETDIR)/make.exit
+	docker-compose down --volumes || true
+	docker-compose up --build --exit-code-from rndpwd_integration || echo $${?} > $(TARGETDIR)/make.exit
+	docker-compose down --rmi local --volumes --remove-orphans || true
+	@exit `cat $(TARGETDIR)/make.exit`
 
-# Full build and test sequence
-# You may want to change this and remove the options you don't need
-#buildall: deps qa rpm deb bz2 crossbuild
-.PHONY: buildall
-buildall: build qa rpm deb
+# Run the integration tests; locally we need to execute 'build' and 'docker' targets first
+.PHONY: dockertestenv
+dockertestenv: ensuretarget
+	@echo "RNDPWD_REMOTECONFIGPROVIDER=envvar" > $(TARGETDIR)/rndpwd.integration.env
+	@echo "RNDPWD_REMOTECONFIGDATA=$(shell cat resources/test/integration/rndpwd/config.json | base64 | tr -d \\n)" >> $(TARGETDIR)/rndpwd.integration.env
 
-# Build everything inside a Docker container
-.PHONY: dbuild
-dbuild:
-	@mkdir -p target
-	@rm -rf target/*
-	@echo 0 > target/make.exit
-	CVSPATH=$(CVSPATH) VENDOR=$(VENDOR) PROJECT=$(PROJECT) MAKETARGET='$(MAKETARGET)' ./dockerbuild.sh
-	@exit `cat target/make.exit`
+# Create the trget directories if missing
+.PHONY: ensuretarget
+ensuretarget:
+	@mkdir -p $(TARGETDIR)/test
+	@mkdir -p $(TARGETDIR)/report
+	@mkdir -p $(TARGETDIR)/binutil
 
-# Upload linux packages to bintray
-.PHONY: bintray
-bintray: rpm deb
-	@curl -T target/RPM/RPMS/x86_64/${VENDOR}-${PROJECT}-${VERSION}-${RELEASE}.x86_64.rpm -u${APIUSER}:${APIKEY} -H "X-Bintray-Package:${PROJECT}" -H "X-Bintray-Version:${VERSION}" -H "X-Bintray-Publish:1" -H "X-Bintray-Override:1" https://api.bintray.com/content/tecnickcom/rpm/~#VENDOR#~-${PROJECT}-${VERSION}-${RELEASE}.x86_64.rpm
-	@curl -T target/DEB/${VENDOR}-${PROJECT}_${VERSION}-${RELEASE}_amd64.deb -u${APIUSER}:${APIKEY} -H "X-Bintray-Package:${PROJECT}" -H "X-Bintray-Version:${VERSION}" -H "X-Bintray-Debian-Distribution:amd64" -H "X-Bintray-Debian-Component:main" -H "X-Bintray-Debian-Architecture:amd64" -H "X-Bintray-Publish:1" -H "X-Bintray-Override:1" https://api.bintray.com/content/tecnickcom/deb/~#VENDOR#~-${PROJECT}_${VERSION}-${RELEASE}_amd64.deb
+# Format the source code
+.PHONY: format
+format:
+	@find $(CMDDIR) -type f -name "*.go" -exec $(GOFMT) -s -w {} \;
+	@find $(SRCDIR) -type f -name "*.go" -exec $(GOFMT) -s -w {} \;
+
+# Generate test mocks
+.PHONY: generate
+generate:
+	rm -f internal/mocks/*.go
+	$(GO) generate $(GOPKGS)
+
+# Install this application
+.PHONY: install
+install: uninstall
+	mkdir -p $(PATHINSTBIN)
+	cp -r ./target/${BINPATH}* $(PATHINSTBIN)
+	find $(PATHINSTBIN) -type d -exec chmod 755 {} \;
+	find $(PATHINSTBIN) -type f -exec chmod 755 {} \;
+	mkdir -p $(PATHINSTDOC)
+	cp -f ./LICENSE $(PATHINSTDOC)
+	cp -f ./README.md $(PATHINSTDOC)
+	cp -f ./CONFIG.md $(PATHINSTDOC)
+	cp -f ./VERSION $(PATHINSTDOC)
+	cp -f ./RELEASE $(PATHINSTDOC)
+	chmod -R 644 $(PATHINSTDOC)*
+ifneq ($(strip $(INITPATH)),)
+	mkdir -p $(PATHINSTINIT)
+	cp -rf ./resources/${INITPATH}* $(PATHINSTINIT)
+	find $(PATHINSTINIT) -type d -exec chmod 755 {} \;
+	find $(PATHINSTINIT) -type f -exec chmod 755 {} \;
+endif
+ifneq ($(strip $(CONFIGPATH)),)
+	mkdir -p $(PATHINSTCFG)
+	touch -c $(PATHINSTCFG)*
+	cp -rf ./resources/${CONFIGPATH}* $(PATHINSTCFG)
+	find $(PATHINSTCFG) -type d -exec chmod 755 {} \;
+	find $(PATHINSTCFG) -type f -exec chmod 644 {} \;
+endif
+ifneq ($(strip $(MANPATH)),)
+	mkdir -p $(PATHINSTMAN)
+	cat ./resources/${MANPATH}${PROJECT}.1 | gzip -9 > $(PATHINSTMAN)${PROJECT}.1.gz
+	find $(PATHINSTMAN) -type f -exec chmod 644 {} \;
+endif
+
+# Install TLS root CA certificates
+.PHONY: installssl
+installssl:
+ifneq ($(strip $(SSLCONFIGPATH)),)
+	# add system root CA certificates
+	for CERT in ${CACERTPATH} ; do \
+		test -f $${CERT} && \
+		mkdir -p $${DESTDIR}$$(dirname $${CERT}) && \
+		cp $${CERT} $${DESTDIR}$${CERT} && \
+		break ; \
+	done
+	# add custom CA certificates
+	mkdir -p $(PATHINSTSSLCFG)
+	cp -r ./resources/${SSLCONFIGPATH}* $(PATHINSTSSLCFG)
+	rm $(PATHINSTSSLCFG)certs/.keep
+	find $(PATHINSTSSLCFG) -type d -exec chmod 755 {} \;
+	find $(PATHINSTSSLCFG) -type f -exec chmod 644 {} \;
+endif
+
+# Execute multiple linter tools
+.PHONY: linter
+linter:
+	@echo -e "\n\n>>> START: Static code analysis <<<\n\n"
+	$(BINUTIL)/golangci-lint run --exclude-use-default=false $(CMDDIR)/... $(SRCDIR)/...
+	@echo -e "\n\n>>> END: Static code analysis <<<\n\n"
+
+# Download dependencies
+.PHONY: mod
+mod:
+	$(GO) mod download all
+
+# Update dependencies
+.PHONY: modupdate
+modupdate:
+	$(GO) get $(shell $(GO) list -f '{{if not (or .Main .Indirect)}}{{.Path}}{{end}}' -m all)
+
+# Test the OpenAPI specification against the real deployed service
+.PHONY: openapitest
+openapitest:
+	$(MAKE) schemathesistest API_TEST_URL=${RNDPWD_MONITORING_URL} OPENAPI_FILE=openapi_monitoring.yaml
+	$(MAKE) schemathesistest API_TEST_URL=${RNDPWD_URL} OPENAPI_FILE=openapi.yaml
+
+# Ping the deployed service to check if the correct deployed container is alive
+.PHONY: ping
+ping:
+	if [ "200_$(VERSION)_$(RELEASE)_" != "$(shell curl --silent --insecure '$(RNDPWD_MONITORING_URL)/ping' | jq -r '.code,.version,.release' | tr '\n' '_')" ]; then exit 1; fi
+
+# Run all tests and static analysis tools
+.PHONY: qa
+qa: linter confcheck test coverage
+
+# Retry the ping command automatically (try 60 times every 5 sec = 5 min max)
+.PHONY: rping
+rping:
+	$(call make_retry,ping,60,5)
+
+# Build the RPM package for RedHat-like Linux distributions
+.PHONY: rpm
+rpm:
+	rm -rf $(PATHRPMPKG)
+	rpmbuild \
+	--define "_topdir $(PATHRPMPKG)" \
+	--define "_vendor $(VENDOR)" \
+	--define "_owner $(OWNER)" \
+	--define "_project $(PROJECT)" \
+	--define "_package $(PKGNAME)" \
+	--define "_version $(VERSION)" \
+	--define "_release $(RELEASE)" \
+	--define "_current_directory $(CURRENTDIR)" \
+	--define "_binpath /$(BINPATH)" \
+	--define "_docpath /$(DOCPATH)" \
+	--define "_configpath /$(CONFIGPATH)" \
+	--define "_initpath /$(INITPATH)" \
+	--define "_manpath /$(MANPATH)" \
+	-bb resources/rpm/rpm.spec
+
+# Test the OpenAPI specification against the real deployed service
+.PHONY: schemathesistest
+schemathesistest:
+	schemathesis run \
+	--validate-schema=true \
+	--checks=all \
+	--request-timeout=2000 \
+	--hypothesis-max-examples=5 \
+	--hypothesis-deadline=2000 \
+	--show-errors-tracebacks \
+	--base-url='${API_TEST_URL}' \
+	${OPENAPI_FILE}
+
+# Run the unit tests
+.PHONY: test
+test: ensuretarget
+	@echo -e "\n\n>>> START: Unit Tests <<<\n\n"
+	$(GOTEST) \
+	-shuffle=on \
+	-tags=unit,benchmark \
+	-covermode=atomic \
+	-bench=. \
+	-race \
+	-failfast \
+	-coverprofile=$(TARGETDIR)/report/coverage.out \
+	-v $(GOPKGS) $(TESTEXTRACMD)
+	@echo -e "\n\n>>> END: Unit Tests <<<\n\n"
+
+# Remove all installed files (excluding configuration files)
+.PHONY: uninstall
+uninstall:
+	rm -rf $(PATHINSTBIN)$(PROJECT)
+	rm -rf $(PATHINSTDOC)
+
+# Run venom tests (https://github.com/ovh/venom)
+.PHONY: venomtest
+venomtest:
+	@mkdir -p $(TARGETDIR)/report/${DEPLOY_ENV}/venom/$(API_TEST_DIR)
+	venom run \
+		--var rndpwd.url="${API_TEST_URL}" \
+		--var rndpwd.version="${VERSION}" \
+		--var rndpwd.release="${RELEASE}" \
+		-vv \
+		--output-dir=$(TARGETDIR)/report/${DEPLOY_ENV}/venom/$(API_TEST_DIR) \
+		resources/test/venom/$(API_TEST_DIR)/$(API_TEST_FILE)

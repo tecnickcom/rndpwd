@@ -1,4 +1,7 @@
 target
+vendor
 /Dockerfile
 *.bak
-src.test
+*.test
+.idea
+golangci-lint

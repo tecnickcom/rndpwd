@@ -1,0 +1,44 @@
+version: "2"
+name: rndpwd Public API tests
+vars:
+  rndpwd.url: 'http://rndpwd:8071'
+
+testcases:
+
+- name: wrong_endpoint
+  steps:
+  - type: http
+    ignore_verify_ssl optional: true
+    method: GET
+    url: '{{.rndpwd.url}}/error'
+    assertions:
+    - result.statuscode ShouldEqual 404
+
+- name: ping
+  steps:
+    - type: http
+      ignore_verify_ssl optional: true
+      method: GET
+      url: '{{.rndpwd.url}}/ping'
+      assertions:
+        - result.statuscode ShouldEqual 200
+
+- name: password
+  steps:
+    - type: http
+      ignore_verify_ssl optional: true
+      method: GET
+      url: '{{.rndpwd.url}}/password'
+      assertions:
+        - result.statuscode ShouldEqual 200
+        - result.body ShouldNotBeEmpty
+
+- name: uid
+  steps:
+    - type: http
+      ignore_verify_ssl optional: true
+      method: GET
+      url: '{{.rndpwd.url}}/uid'
+      assertions:
+        - result.statuscode ShouldEqual 200
+        - result.body ShouldNotBeEmpty

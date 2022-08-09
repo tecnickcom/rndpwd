@@ -1,0 +1,79 @@
+name: check
+
+on:
+  push:
+    branches:
+      - 'main'
+  pull_request:
+    branches:
+      - 'main'
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v3
+      - name: setup go build environment
+        uses: actions/setup-go@v3
+        with:
+          go-version-file: 'go.mod'
+          check-latest: true
+      - name: dependency cache
+        uses: actions/cache@v2
+        with:
+          path: $(go env GOPATH)/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: ${{ runner.os }}-go-
+      - name: granting private modules access
+        run: git config --global url."https://${{ secrets.GH_USER }}:${{ secrets.GH_TOKEN }}@github.com/nexmoinc/".insteadOf "https://github.com/nexmoinc/"
+      - name: linter
+        run: make mod deps linter GOPATH=$(go env GOPATH)
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v3
+      - name: setup go build environment
+        uses: actions/setup-go@v3
+        with:
+          go-version-file: 'go.mod'
+          check-latest: true
+      - name: dependency cache
+        uses: actions/cache@v2
+        with:
+          path: $(go env GOPATH)/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: ${{ runner.os }}-go-
+      - name: granting private modules access
+        run: git config --global url."https://${{ secrets.GH_USER }}:${{ secrets.GH_TOKEN }}@github.com/nexmoinc/".insteadOf "https://github.com/nexmoinc/"
+      - name: unit tests
+        run: make mod deps confcheck test GOPATH=$(go env GOPATH)
+      - name: coverage report
+        uses: shogo82148/actions-goveralls@v1
+        with:
+          path-to-profile: target/report/coverage.out
+
+  integration-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v3
+      - name: setup go build environment
+        uses: actions/setup-go@v3
+        with:
+          go-version-file: 'go.mod'
+          check-latest: true
+      - name: dependency cache
+        uses: actions/cache@v2
+        with:
+          path: $(go env GOPATH)/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: ${{ runner.os }}-go-
+      - name: granting private modules access
+        run: git config --global url."https://${{ secrets.GH_USER }}:${{ secrets.GH_TOKEN }}@github.com/nexmoinc/".insteadOf "https://github.com/nexmoinc/"
+      - name: set RELEASE number
+        run: echo ${GITHUB_RUN_NUMBER} > RELEASE
+      - name: integration tests
+        run: make mod deps generate build docker dockertest GOPATH=$(go env GOPATH)

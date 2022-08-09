@@ -1,5 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-04/schema#",
+  "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "rndpwd config",
   "description": "JSON schema for rndpwd configuration",
   "type": "object",
@@ -11,7 +11,8 @@
       "enum": [
         "",
         "consul",
-        "etcd"
+        "etcd",
+        "envvar"
       ]
     },
     "remoteConfigEndpoint": {
@@ -33,6 +34,15 @@
       "description": "Logging settings",
       "type": "object",
       "properties": {
+        "format": {
+          "description": "Defines the default log format",
+          "type": "string",
+          "default": "JSON",
+          "enum": [
+            "CONSOLE",
+            "JSON"
+          ]
+        },
         "level": {
           "description": "Defines the default log level",
           "type": "string",
@@ -71,73 +81,106 @@
         "address"
       ]
     },
-    "stats": {
-      "description": "StatsD is used to collect usage metrics",
+    "enabled": {
+      "description": "Enable or disable the service",
+      "type": "boolean",
+      "default": true
+    },
+    "monitoring_address": {
+      "description": "Monitoring HTTP address (ip:port) or just (:port)",
+      "type": "string",
+      "default": ":8082"
+    },
+    "public_address": {
+      "description": "Public service HTTP address (ip:port) or just (:port)",
+      "type": "string",
+      "default": ":8081"
+    },
+    "ipify": {
       "type": "object",
+      "title": "ipify service client",
+      "description": "Configuration of the ipify service client",
+      "examples": [
+        {
+          "address": "https://api.ipify.org",
+          "timeout": 5
+        }
+      ],
+      "required": [
+        "address",
+        "timeout"
+      ],
+      "additionalProperties": false,
       "properties": {
-        "prefix": {
-          "description": "StatsD client's string prefix that will be used in every bucket name",
+        "address": {
           "type": "string",
-          "default": "rndpwd"
-        },
-        "network": {
-          "description": "Network type used by the StatsD client",
-          "type": "string",
-          "default": "udp",
-          "enum": [
-            "udp",
-            "tcp"
+          "description": "Base URL of the service",
+          "default": "",
+          "examples": [
+            "https://api.ipify.org"
           ]
         },
-        "address": {
-          "description": "Network address of the StatsD daemon (ip:port) or just (:port)",
-          "type": "string",
-          "default": ":8125"
-        },
-        "flush_period": {
-          "description": "Sets how often (in milliseconds) the StatsD client's buffer is flushed. When 0 the buffer is only flushed when it is full",
+        "timeout": {
           "type": "integer",
-          "default": 100,
-          "minimum": 0,
-          "maximum": 1000
+          "description": "HTTP client timeout [seconds]",
+          "default": 1,
+          "examples": [
+            1
+          ]
         }
-      },
-      "additionalProperties": false,
+      }
+    },
+    "random": {
+      "type": "object",
+      "title": "Settings for the random generator",
+      "description": "Configuration of the random generator",
+      "examples": [
+        {
+          "address": "https://api.ipify.org",
+          "timeout": 5
+        }
+      ],
       "required": [
-        "prefix",
-        "network",
-        "address",
-        "flush_period"
-      ]
-    },
-    "serverAddress": {
-      "description": "Internal HTTP address (ip:port) or just (:port)",
-      "type": "string",
-      "default": ":8017"
-    },
-    "charset": {
-      "description": "String containing the valid characters for a password",
-      "type": "string",
-      "default": "!#$%&()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ^_abcdefghijklmnopqrstuvwxyz~"
-    },
-    "length": {
-      "description": "Length of each password (number of characters or bytes)",
-      "type": "integer",
-      "default": 32
-    },
-    "quantity": {
-      "description": "Number of passwords to return",
-      "type": "integer",
-      "default": 10
+        "charset",
+        "length",
+        "quantity"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "charset": {
+          "description": "String containing the valid characters for a password",
+          "type": "string",
+          "default": "!#$%&()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ^_abcdefghijklmnopqrstuvwxyz~",
+          "examples": [
+            "0123456789abcdefghijklmnopqrstuvwxyz"
+          ]
+        },
+        "length": {
+          "description": "Length of each password (number of characters or bytes)",
+          "type": "integer",
+          "default": 32,
+          "examples": [
+            32
+          ]
+        },
+        "quantity": {
+          "description": "Number of passwords to return",
+          "type": "integer",
+          "default": 10,
+          "examples": [
+            10
+          ]
+        }
+      }
     }
   },
   "additionalProperties": false,
   "required": [
     "log",
-    "stats",
-    "serverAddress",
-    "charset",
-    "length",
-    "quantity"
+    "enabled",
+    "monitoring_address",
+    "public_address",
+    "ipify",
+    "random"
   ]
 }
