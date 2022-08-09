@@ -2,10 +2,10 @@
 
 *Web-Service Random Password Generator*
 
-This is an example project built using [gosrvlib](https://github.com/nexmoinc/gosrvlib)
+This is an example project built using [rndpwd](https://github.com/tecnickcom/rndpwd)
 
-[![Build](https://secure.travis-ci.org/tecnickcom/rndpwd.png?branch=main)](https://travis-ci.org/tecnickcom/rndpwd?branch=main)
-[![Coverage](https://coveralls.io/repos/tecnickcom/rndpwd/badge.svg?branch=main&service=github)](https://coveralls.io/github/tecnickcom/rndpwd?branch=main)
+[![check](https://github.com/tecnickcom/rndpwd/actions/workflows/check.yaml/badge.svg)](https://github.com/tecnickcom/rndpwd/actions/workflows/check.yaml)
+[![Coverage Status](https://coveralls.io/repos/github/tecnickcom/rndpwd/badge.svg?branch=main)](https://coveralls.io/github/tecnickcom/rndpwd?branch=main)
 [![Go Report Card](https://goreportcard.com/badge/github.com/tecnickcom/rndpwd)](https://goreportcard.com/report/github.com/tecnickcom/rndpwd)
 
 [![Donate via PayPal](https://img.shields.io/badge/donate-paypal-87ceeb.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&currency_code=GBP&business=paypal@tecnick.com&item_name=donation%20for%20rndpwd%20project)
@@ -40,7 +40,7 @@ This is an example project built using [gosrvlib](https://github.com/nexmoinc/go
 <a name="description"></a>
 ## Description
 
-Web-Service Random Password Generator - gosrvlib example
+Web-Service Random Password Generator - rndpwd example
 
 -----------------------------------------------------------------
 
