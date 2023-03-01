@@ -285,6 +285,7 @@ help:
 	@echo "    make openapitest   : Test the OpenAPI specification"
 	@echo "    make qa            : Run all tests and static analysis tools"
 	@echo "    make rpm           : Build an RPM package"
+	@echo "    make tag           : Tag the Git repository"
 	@echo "    make test          : Run unit tests"
 	@echo ""
 	@echo "Use DEVMODE=LOCAL for human friendly output."
@@ -605,6 +606,12 @@ schemathesistest:
 	--show-errors-tracebacks \
 	--base-url='${API_TEST_URL}' \
 	${OPENAPI_FILE}
+
+# Tag the Git repository
+.PHONY: tag
+tag:
+	git tag -a "v$(VERSION)" -m "Version $(VERSION)" && \
+	git push origin --tags
 
 # Run the unit tests
 .PHONY: test
