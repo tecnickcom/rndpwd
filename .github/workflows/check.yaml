@@ -14,6 +14,8 @@ jobs:
     steps:
       - name: checkout repository
         uses: actions/checkout@v3
+      - name: install tools
+        run: pip install --upgrade check-jsonschema
       - name: setup go build environment
         uses: actions/setup-go@v3
         with:
@@ -33,6 +35,8 @@ jobs:
     steps:
       - name: checkout repository
         uses: actions/checkout@v3
+      - name: install tools
+        run: pip install --upgrade check-jsonschema
       - name: setup go build environment
         uses: actions/setup-go@v3
         with:
@@ -56,6 +60,8 @@ jobs:
     steps:
       - name: checkout repository
         uses: actions/checkout@v3
+      - name: install tools
+        run: pip install --upgrade check-jsonschema
       - name: setup go build environment
         uses: actions/setup-go@v3
         with:
