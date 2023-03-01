@@ -5,14 +5,23 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/nexmoinc/gosrvlib/pkg/httpserver/route"
-	"github.com/nexmoinc/gosrvlib/pkg/httputil"
-	"github.com/nexmoinc/gosrvlib/pkg/httputil/jsendx"
-	"github.com/nexmoinc/gosrvlib/pkg/uidc"
+	"github.com/Vonage/gosrvlib/pkg/httpserver/route"
+	"github.com/Vonage/gosrvlib/pkg/httputil"
+	"github.com/Vonage/gosrvlib/pkg/httputil/jsendx"
+	"github.com/Vonage/gosrvlib/pkg/uidc"
 	"github.com/tecnickcom/rndpwd/internal/metrics"
 	"github.com/tecnickcom/rndpwd/internal/password"
 	"github.com/tecnickcom/rndpwd/internal/validator"
 )
+
+// Service is the interface representing the business logic of the service.
+type Service interface {
+	// NOTE
+	// This is a sample Service interface.
+	// It is meant to demonstrate where the business logic of a service should reside.
+	// It adds the capability of mocking the HTTP Handler independently from the rest of the code.
+	// Add service functions here.
+}
 
 // HTTPHandler is the struct containing all the http handlers.
 type HTTPHandler struct {
@@ -50,6 +59,10 @@ func (h *HTTPHandler) BindHTTP(_ context.Context) []route.Route {
 	}
 }
 
+func (h *HTTPHandler) handleGenUID(w http.ResponseWriter, r *http.Request) {
+	httputil.SendJSON(r.Context(), w, http.StatusOK, uidc.NewID128())
+}
+
 func (h *HTTPHandler) handlePassword(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 
@@ -66,8 +79,4 @@ func (h *HTTPHandler) handlePassword(w http.ResponseWriter, r *http.Request) {
 	}
 
 	httputil.SendJSON(r.Context(), w, http.StatusOK, p.Generate())
-}
-
-func (h *HTTPHandler) handleGenUID(w http.ResponseWriter, r *http.Request) {
-	httputil.SendJSON(r.Context(), w, http.StatusOK, uidc.NewID128())
 }

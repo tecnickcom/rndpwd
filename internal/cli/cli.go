@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/nexmoinc/gosrvlib/pkg/bootstrap"
-	"github.com/nexmoinc/gosrvlib/pkg/config"
-	"github.com/nexmoinc/gosrvlib/pkg/httputil/jsendx"
-	"github.com/nexmoinc/gosrvlib/pkg/logging"
+	"github.com/Vonage/gosrvlib/pkg/bootstrap"
+	"github.com/Vonage/gosrvlib/pkg/config"
+	"github.com/Vonage/gosrvlib/pkg/httputil/jsendx"
+	"github.com/Vonage/gosrvlib/pkg/logging"
 	"github.com/spf13/cobra"
 	"github.com/tecnickcom/rndpwd/internal/metrics"
 )
@@ -71,7 +71,7 @@ func New(version, release string, bootstrapFn bootstrapFunc) (*cobra.Command, er
 	}
 
 	// sub-command to print the version
-	var versionCmd = &cobra.Command{
+	versionCmd := &cobra.Command{
 		Use:   "version",
 		Short: "Print this program version",
 		Run: func(cmd *cobra.Command, args []string) {

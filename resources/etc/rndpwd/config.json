@@ -1,20 +1,30 @@
 {
-  "remoteConfigProvider": "",
-  "remoteConfigEndpoint": "",
-  "remoteConfigPath": "",
-  "remoteConfigSecretKeyring": "",
+  "clients": {
+    "ipify": {
+      "address": "",
+      "timeout": 1
+    }
+  },
   "enabled": true,
   "log": {
+    "address": "",
     "format": "JSON",
     "level": "INFO",
-    "network": "",
-    "address": ""
+    "network": ""
   },
-  "monitoring_address": "",
-  "public_address": "",
-  "ipify": {
-    "address": "",
-    "timeout": 1
+  "remoteConfigEndpoint": "",
+  "remoteConfigPath": "",
+  "remoteConfigProvider": "",
+  "remoteConfigSecretKeyring": "",
+  "servers": {
+    "monitoring": {
+      "address": "",
+      "timeout": 60
+    },
+    "public": {
+      "address": "",
+      "timeout": 60
+    }
   },
   "random": {
     "charset": "!#$%&()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ^_abcdefghijklmnopqrstuvwxyz~",

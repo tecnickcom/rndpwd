@@ -23,22 +23,22 @@ testcases:
       assertions:
         - result.statuscode ShouldEqual 200
 
-- name: password
-  steps:
-    - type: http
-      ignore_verify_ssl optional: true
-      method: GET
-      url: '{{.rndpwd.url}}/password'
-      assertions:
-        - result.statuscode ShouldEqual 200
-        - result.body ShouldNotBeEmpty
-
 - name: uid
   steps:
     - type: http
       ignore_verify_ssl optional: true
       method: GET
       url: '{{.rndpwd.url}}/uid'
+      assertions:
+        - result.statuscode ShouldEqual 200
+        - result.body ShouldNotBeEmpty
+
+- name: password
+  steps:
+    - type: http
+      ignore_verify_ssl optional: true
+      method: GET
+      url: '{{.rndpwd.url}}/password'
       assertions:
         - result.statuscode ShouldEqual 200
         - result.body ShouldNotBeEmpty

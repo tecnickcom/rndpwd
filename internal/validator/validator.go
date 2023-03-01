@@ -5,8 +5,8 @@ import (
 	"context"
 	"regexp"
 
+	val "github.com/Vonage/gosrvlib/pkg/validator"
 	vt "github.com/go-playground/validator/v10"
-	val "github.com/nexmoinc/gosrvlib/pkg/validator"
 )
 
 const (
@@ -14,9 +14,7 @@ const (
 	ValidCharset = "!#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcdefghijklmnopqrstuvwxyz{|}~"
 )
 
-var (
-	regexValidCharset = regexp.MustCompile("[^" + regexp.QuoteMeta(ValidCharset) + "]")
-)
+var regexValidCharset = regexp.MustCompile("[^" + regexp.QuoteMeta(ValidCharset) + "]")
 
 // Validator is the contract with the gosrvlib validator.
 type Validator interface {

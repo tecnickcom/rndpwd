@@ -7,14 +7,17 @@
 SHELL=/bin/bash
 .SHELLFLAGS=-o pipefail -c
 
-# CVS path (path to the parent dir containing the project)
-CVSPATH=github.com/tecnickcom/rndpwd
-
 # Project owner
-OWNER=rndpwd
+OWNER=tecnickcom
 
 # Project vendor
-VENDOR=rndpwd
+VENDOR=${OWNER}
+
+# Lowercase VENDOR name for Docker
+LCVENDOR=$(shell echo "${VENDOR}" | tr '[:upper:]' '[:lower:]')
+
+# CVS path (path to the parent dir containing the project)
+CVSPATH=github.com/${VENDOR}
 
 # Project name
 PROJECT=rndpwd
@@ -26,7 +29,7 @@ VERSION=$(shell cat VERSION)
 RELEASE=$(shell cat RELEASE)
 
 # Name of RPM or DEB package
-PKGNAME=${VENDOR}-${PROJECT}
+PKGNAME=${LCVENDOR}-${PROJECT}
 
 # Current directory
 CURRENTDIR=$(dir $(realpath $(firstword $(MAKEFILE_LIST))))
@@ -86,13 +89,13 @@ PATHINSTDOC=$(DESTDIR)/$(DOCPATH)
 PATHINSTMAN=$(DESTDIR)/$(MANPATH)
 
 # DOCKER Packaging path (where BZ2s will be stored)
-PATHDOCKERPKG=$(CURRENTDIR)/target/DOCKER
+PATHDOCKERPKG=$(CURRENTDIR)target/DOCKER
 
 # RPM Packaging path (where RPMs will be stored)
-PATHRPMPKG=$(CURRENTDIR)/target/RPM
+PATHRPMPKG=$(CURRENTDIR)target/RPM
 
 # DEB Packaging path (where DEBs will be stored)
-PATHDEBPKG=$(CURRENTDIR)/target/DEB
+PATHDEBPKG=$(CURRENTDIR)target/DEB
 
 # Prefix for the published docker container name
 DOCKERPREFIX=
@@ -100,24 +103,13 @@ DOCKERPREFIX=
 # Suffix for the published docker container name
 DOCKERSUFFIX=
 
-# Docker repository for the dev environment
-DOCKER_REGISTRY_DEV=
-
-# Docker repository for the prod environment
-DOCKER_REGISTRY_PROD=
+# Command used to check the configuration files
+CONFCHECKCMD=check-jsonschema --schemafile resources/etc/${PROJECT}/config.schema.json
 
 # Set default AWS region (if using AWS for deployments)
 ifeq ($(AWS_DEFAULT_REGION),)
 	AWS_DEFAULT_REGION=eu-west-1
 endif
-
-# AWS command to get the ECR Docker login for the current environment
-# AWS_ECR_GET_LOGIN_ENV="aws ecr get-login --no-include-email --region ${AWS_DEFAULT_REGION} | sed 's|https://||'"
-AWS_ECR_GET_LOGIN_ENV="echo skip"
-
-# AWS command to get the ECR Docker login for DEV environment
-# AWS_ECR_GET_LOGIN_DEV="aws --profile YOURDEVPROFILE ecr get-login --no-include-email --region ${AWS_DEFAULT_REGION} | sed 's|https://||'"
-AWS_ECR_GET_LOGIN_DEV="echo skip"
 
 # STATIC is a flag to indicate whether to build using static or dynamic linking
 STATIC=1
@@ -138,6 +130,16 @@ endif
 # Docker command
 ifeq ($(DOCKER),)
 	DOCKER=docker
+endif
+
+# Docker compose command
+ifeq ($(DOCKERCOMPOSE),)
+	DOCKERCOMPOSE=docker-compose
+	DOCKERCOMPOSEPLUGIN=$(DOCKER) compose
+	HASDOCKERCOMPOSE := $(shell $(DOCKERCOMPOSEPLUGIN) 2> /dev/null)
+	ifdef HASDOCKERCOMPOSE
+		DOCKERCOMPOSE=$(DOCKERCOMPOSEPLUGIN)
+	endif
 endif
 
 # Common commands
@@ -176,11 +178,42 @@ endif
 
 # Deployment environment
 ifeq ($(DEPLOY_ENV),)
-	DEPLOY_ENV=dev
+	DEPLOY_ENV=int
 endif
+
+# Docker repository for the DEV environment
+DOCKER_REGISTRY_DEV=
+
+# Docker repository for the QA environment
+DOCKER_REGISTRY_QA=
+
+# Docker repository for the PROD environment
+DOCKER_REGISTRY_PROD=
+
+# Docker repository for the current environment
+DOCKER_REGISTRY=
+
+# Docker repository from where to pull the image
+DOCKER_REGISTRY_PULL=
+
+# Docker repository where to push the image
+DOCKER_REGISTRY_PUSH=
+
+# Command used to login into the Docker pull repository
+# Example: "aws --profile MYENVPROFILE ecr get-login --no-include-email --region ${AWS_REGION} | sed 's|https://||'"
+DOCKER_LOGIN_PULL="echo skip"
+
+# Command used to login into the Docker push repository
+# Example: "aws --profile MYENVPROFILE ecr get-login --no-include-email --region ${AWS_REGION} | sed 's|https://||'"
+DOCKER_LOGIN_PUSH="echo skip"
 
 # INT - integration environment via docker-compose
 ifeq ($(DEPLOY_ENV), int)
+	DOCKER_REGISTRY=${DOCKER_REGISTRY_DEV}
+	#DOCKER_REGISTRY_PULL=
+	#DOCKER_REGISTRY_PUSH=
+	#DOCKER_LOGIN_PULL=
+	#DOCKER_LOGIN_PUSH=
 	RNDPWD_URL=http://rndpwd:8071
 	RNDPWD_MONITORING_URL=http://rndpwd:8072
 	API_TEST_FILE=*.yaml
@@ -189,14 +222,33 @@ endif
 # Development environment
 ifeq ($(DEPLOY_ENV), dev)
 	DOCKER_REGISTRY=${DOCKER_REGISTRY_DEV}
+	#DOCKER_REGISTRY_PULL=
+	DOCKER_REGISTRY_PUSH=${DOCKER_REGISTRY_DEV}
+	#DOCKER_LOGIN_PULL=
+	#DOCKER_LOGIN_PUSH=
 	RNDPWD_URL=http://rndpwd:8071
 	RNDPWD_MONITORING_URL=http://rndpwd:8072
 	API_TEST_FILE=*.yaml
 endif
 
+# QA environment
+ifeq ($(DEPLOY_ENV), qa)
+	DOCKER_REGISTRY=${DOCKER_REGISTRY_QA}
+	DOCKER_REGISTRY_PULL=${DOCKER_REGISTRY_DEV}
+	DOCKER_REGISTRY_PUSH=${DOCKER_REGISTRY_QA}
+	#DOCKER_LOGIN_PULL=
+	#DOCKER_LOGIN_PUSH=
+	RNDPWD_URL=http://rndpwd:8071
+	RNDPWD_MONITORING_URL=http://rndpwd:8072
+endif
+
 # Production environment
 ifeq ($(DEPLOY_ENV), prod)
 	DOCKER_REGISTRY=${DOCKER_REGISTRY_PROD}
+	DOCKER_REGISTRY_PULL=${DOCKER_REGISTRY_QA}
+	DOCKER_REGISTRY_PUSH=${DOCKER_REGISTRY_PROD}
+	#DOCKER_LOGIN_PULL=
+	#DOCKER_LOGIN_PUSH=
 	RNDPWD_URL=http://rndpwd:8071
 	RNDPWD_MONITORING_URL=http://rndpwd:8072
 	API_TEST_FILE=*.yaml
@@ -225,6 +277,7 @@ help:
 	@echo "    make dockertest    : Test the newly built docker container"
 	@echo "    make format        : Format the source code"
 	@echo "    make generate      : Generate go code automatically"
+	@echo "    make gendoc        : Generate static documentation from /doc/src"
 	@echo "    make install       : Install this application"
 	@echo "    make linter        : Check code against multiple linters"
 	@echo "    make mod           : Download dependencies"
@@ -236,7 +289,7 @@ help:
 	@echo ""
 	@echo "Use DEVMODE=LOCAL for human friendly output."
 	@echo "To test and build everything from scratch:"
-	@echo "DEVMODE=LOCAL make format clean mod deps generate qa build docker dockertest"
+	@echo "DEVMODE=LOCAL make format clean mod deps gendoc generate qa build docker dockertest"
 	@echo ""
 
 # Alias for help target
@@ -271,8 +324,8 @@ clean:
 # Validate JSON configuration files against the JSON schema
 .PHONY: confcheck
 confcheck:
-	jsonschema -i resources/test/etc/${PROJECT}/config.json resources/etc/${PROJECT}/config.schema.json
-	jsonschema -i resources/etc/${PROJECT}/config.json resources/etc/${PROJECT}/config.schema.json
+	${CONFCHECKCMD} resources/test/etc/${PROJECT}/config.json
+	${CONFCHECKCMD} resources/etc/${PROJECT}/config.json
 
 # Generate the coverage report
 .PHONY: coverage
@@ -285,7 +338,7 @@ dbuild: dockerdev
 	@mkdir -p $(TARGETDIR)
 	@rm -rf $(TARGETDIR)/*
 	@echo 0 > $(TARGETDIR)/make.exit
-	CVSPATH=$(CVSPATH) VENDOR=$(VENDOR) PROJECT=$(PROJECT) MAKETARGET='$(MAKETARGET)' $(CURRENTDIR)/dockerbuild.sh
+	CVSPATH=$(CVSPATH) VENDOR=$(LCVENDOR) PROJECT=$(PROJECT) MAKETARGET='$(MAKETARGET)' $(CURRENTDIR)dockerbuild.sh
 	@exit `cat $(TARGETDIR)/make.exit`
 
 # Build the DEB package for Debian-like Linux distributions
@@ -327,7 +380,9 @@ endif
 # Get the test dependencies
 .PHONY: deps
 deps: ensuretarget
-	curl --silent --show-error --fail --location https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(BINUTIL) v1.48.0
+	curl --silent --show-error --fail --location https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(BINUTIL) v1.51.2
+	$(GO) install github.com/mikefarah/yq/v4@latest
+	$(GO) install github.com/hairyhenderson/gomplate/v3/cmd/gomplate@latest
 	$(GO) install github.com/rakyll/gotest
 	$(GO) install github.com/jstemmer/go-junit-report
 	$(GO) install github.com/golang/mock/mockgen
@@ -339,17 +394,17 @@ docker: dockerdir dockerbuild
 # Build the docker container in the target/DOCKER directory
 .PHONY: dockerbuild
 dockerbuild:
-	$(DOCKER) build --no-cache --tag=${VENDOR}/${PROJECT}$(DOCKERSUFFIX):latest $(PATHDOCKERPKG)
+	$(DOCKER) build --no-cache --tag=${LCVENDOR}/${PROJECT}$(DOCKERSUFFIX):latest $(PATHDOCKERPKG)
 
 # Delete the Docker image
 .PHONY: dockerdelete
 dockerdelete:
-	$(DOCKER) rmi -f `docker images "${VENDOR}/${PROJECT}$(DOCKERSUFFIX):latest" -q`
+	$(DOCKER) rmi -f `docker images "${LCVENDOR}/${PROJECT}$(DOCKERSUFFIX):latest" -q`
 
 # Build a base development Docker image
 .PHONY: dockerdev
 dockerdev:
-	docker build --pull --tag ${VENDOR}/dev_${PROJECT} --file ./resources/docker/Dockerfile.dev ./resources/docker/
+	$(DOCKER) build --pull --tag ${LCVENDOR}/dev_${PROJECT} --file ./resources/docker/Dockerfile.dev ./resources/docker/
 
 # Create the directory with docker files to be packaged
 .PHONY: dockerdir
@@ -365,28 +420,29 @@ endif
 # Promote docker image from DEV to PROD
 .PHONY: dockerpromote
 dockerpromote:
-	$(shell eval ${AWS_ECR_GET_LOGIN_ENV})
-	$(shell eval ${AWS_ECR_GET_LOGIN_DEV})
-	$(DOCKER) pull "${DOCKER_REGISTRY_DEV}/${DOCKERPREFIX}${PROJECT}$(DOCKERSUFFIX):$(VERSION)-$(RELEASE)"
-	$(DOCKER) tag "${DOCKER_REGISTRY_DEV}/${DOCKERPREFIX}${PROJECT}$(DOCKERSUFFIX):$(VERSION)-$(RELEASE)" "${DOCKER_REGISTRY_PROD}/${DOCKERPREFIX}${PROJECT}$(DOCKERSUFFIX):$(VERSION)-$(RELEASE)"
-	$(DOCKER) push "${DOCKER_REGISTRY_PROD}/${DOCKERPREFIX}${PROJECT}$(DOCKERSUFFIX):$(VERSION)-$(RELEASE)"
+	$(shell eval ${DOCKER_LOGIN_PULL})
+	$(DOCKER) pull "${DOCKER_REGISTRY_PULL}/${DOCKERPREFIX}${PROJECT}$(DOCKERSUFFIX):$(VERSION)-$(RELEASE)"
+	$(DOCKER) tag "${DOCKER_REGISTRY_PULL}/${DOCKERPREFIX}${PROJECT}$(DOCKERSUFFIX):$(VERSION)-$(RELEASE)" "${DOCKER_REGISTRY_PUSH}/${DOCKERPREFIX}${PROJECT}$(DOCKERSUFFIX):$(VERSION)-$(RELEASE)"
+	$(shell eval ${DOCKER_LOGIN_PUSH})
+	$(DOCKER) push "${DOCKER_REGISTRY_PUSH}/${DOCKERPREFIX}${PROJECT}$(DOCKERSUFFIX):$(VERSION)-$(RELEASE)"
 
 # Push docker container to the remote repository
 .PHONY: dockerpush
 dockerpush:
-	$(shell eval ${AWS_ECR_GET_LOGIN_ENV})
-	$(DOCKER) tag "${VENDOR}/${PROJECT}$(DOCKERSUFFIX):latest" "${DOCKER_REGISTRY}/${DOCKERPREFIX}${PROJECT}$(DOCKERSUFFIX):$(VERSION)-$(RELEASE)"
-	$(DOCKER) push "${DOCKER_REGISTRY}/${DOCKERPREFIX}${PROJECT}$(DOCKERSUFFIX):$(VERSION)-$(RELEASE)"
-	$(DOCKER) tag "${VENDOR}/${PROJECT}$(DOCKERSUFFIX):latest" "${DOCKER_REGISTRY}/${DOCKERPREFIX}${PROJECT}$(DOCKERSUFFIX):latest"
-	$(DOCKER) push "${DOCKER_REGISTRY}/${DOCKERPREFIX}${PROJECT}$(DOCKERSUFFIX):latest"
+	$(shell eval ${DOCKER_LOGIN_PUSH})
+	$(DOCKER) tag "${LCVENDOR}/${PROJECT}$(DOCKERSUFFIX):latest" "${DOCKER_REGISTRY_PUSH}/${DOCKERPREFIX}${PROJECT}$(DOCKERSUFFIX):$(VERSION)-$(RELEASE)"
+	$(DOCKER) push "${DOCKER_REGISTRY_PUSH}/${DOCKERPREFIX}${PROJECT}$(DOCKERSUFFIX):$(VERSION)-$(RELEASE)"
+	$(DOCKER) tag "${LCVENDOR}/${PROJECT}$(DOCKERSUFFIX):latest" "${DOCKER_REGISTRY_PUSH}/${DOCKERPREFIX}${PROJECT}$(DOCKERSUFFIX):latest"
+	$(DOCKER) push "${DOCKER_REGISTRY_PUSH}/${DOCKERPREFIX}${PROJECT}$(DOCKERSUFFIX):latest"
 
 .PHONY: dockertest
 dockertest: dockertestenv dockerdev
 	test -f "$(BINUTIL)/dockerize" || curl --silent --show-error --fail --location https://github.com/jwilder/dockerize/releases/download/v0.6.1/dockerize-linux-amd64-v0.6.1.tar.gz | tar -xz -C $(BINUTIL)
 	@echo 0 > $(TARGETDIR)/make.exit
-	docker-compose down --volumes || true
-	docker-compose up --build --exit-code-from rndpwd_integration || echo $${?} > $(TARGETDIR)/make.exit
-	docker-compose down --rmi local --volumes --remove-orphans || true
+	$(DOCKERCOMPOSE) down --volumes || true
+	$(DOCKERCOMPOSE) up --build --exit-code-from ${PROJECT}_integration || echo $${?} > $(TARGETDIR)/make.exit
+	$(DOCKER) cp ${PROJECT}_integration:"/workspace/target/report/" $(TARGETDIR)/ ;
+	$(DOCKERCOMPOSE) down --rmi local --volumes --remove-orphans || true
 	@exit `cat $(TARGETDIR)/make.exit`
 
 # Run the integration tests; locally we need to execute 'build' and 'docker' targets first
@@ -400,7 +456,7 @@ dockertestenv: ensuretarget
 ensuretarget:
 	@mkdir -p $(TARGETDIR)/test
 	@mkdir -p $(TARGETDIR)/report
-	@mkdir -p $(TARGETDIR)/binutil
+	@mkdir -p $(BINUTIL)
 
 # Format the source code
 .PHONY: format
@@ -414,6 +470,19 @@ generate:
 	rm -f internal/mocks/*.go
 	$(GO) generate $(GOPKGS)
 
+# Generate static documentation
+.PHONY: gendoc
+gendoc:
+	yq --input-format yaml --output-format json < doc/src/config.yaml . > doc/src/config.json
+	check-jsonschema --schemafile doc/src/config.schema.json doc/src/config.json
+	ASSUME_NO_MOVING_GC_UNSAFE_RISK_IT_WITH=go1.20 gomplate \
+	--datasource config=./doc/src/config.json \
+	--template description=./doc/src/description.tmpl \
+	--template development=./doc/src/development.tmpl \
+	--template deployment=./doc/src/deployment.tmpl \
+	--file ./doc/src/README.tmpl \
+	--out README.md
+
 # Install this application
 .PHONY: install
 install: uninstall
@@ -424,9 +493,9 @@ install: uninstall
 	mkdir -p $(PATHINSTDOC)
 	cp -f ./LICENSE $(PATHINSTDOC)
 	cp -f ./README.md $(PATHINSTDOC)
-	cp -f ./CONFIG.md $(PATHINSTDOC)
 	cp -f ./VERSION $(PATHINSTDOC)
 	cp -f ./RELEASE $(PATHINSTDOC)
+	cp -f ./doc/*.md $(PATHINSTDOC)
 	chmod -R 644 $(PATHINSTDOC)*
 ifneq ($(strip $(INITPATH)),)
 	mkdir -p $(PATHINSTINIT)
@@ -481,7 +550,8 @@ mod:
 # Update dependencies
 .PHONY: modupdate
 modupdate:
-	$(GO) get $(shell $(GO) list -f '{{if not (or .Main .Indirect)}}{{.Path}}{{end}}' -m all)
+	# $(GO) get $(shell $(GO) list -f '{{if not (or .Main .Indirect)}}{{.Path}}{{end}}' -m all)
+	$(GO) get -t -u -d ./... && go mod tidy -compat=$(shell grep -oP 'go \K[0-9]+\.[0-9]+' go.mod)
 
 # Test the OpenAPI specification against the real deployed service
 .PHONY: openapitest
@@ -530,17 +600,11 @@ schemathesistest:
 	--validate-schema=true \
 	--checks=all \
 	--request-timeout=2000 \
-	--hypothesis-max-examples=5 \
+	--hypothesis-max-examples=100 \
 	--hypothesis-deadline=2000 \
 	--show-errors-tracebacks \
 	--base-url='${API_TEST_URL}' \
 	${OPENAPI_FILE}
-
-# Tag the Git repository
-.PHONY: tag
-tag:
-	git tag -a "v$(VERSION)" -m "Version $(VERSION)" && \
-	git push origin --tags
 
 # Run the unit tests
 .PHONY: test

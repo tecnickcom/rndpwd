@@ -1,0 +1,31 @@
+---
+# yamllint disable rule:line-length
+project:
+  name: rndpwd
+  title: rndpwd
+  category: Application
+  copyright_start_year: "2015"
+  copyright_owner: tecnickcom
+  license_url: https://github.com/tecnickcom/rndpwd/blob/main/LICENSE
+  cvs: https://github.com/tecnickcom/rndpwd
+  tagline: Web-Service Random Password Generator
+  logo: doc/images/logo.png
+team:
+  name: tecnickcom
+  title: tecnickcom
+  info:
+  slack:
+  escalation:
+attachments:
+doclinks:
+  public:
+    general:
+      name: General
+      description: General project documentation
+      links:
+        github:
+          name: GitHup project page
+          url: https://github.com/tecnickcom/rndpwd
+slack:
+dependencies:
+environment:

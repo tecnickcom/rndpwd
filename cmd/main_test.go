@@ -5,8 +5,8 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/nexmoinc/gosrvlib/pkg/logging"
-	"github.com/nexmoinc/gosrvlib/pkg/testutil"
+	"github.com/Vonage/gosrvlib/pkg/logging"
+	"github.com/Vonage/gosrvlib/pkg/testutil"
 	"github.com/stretchr/testify/require"
 	"github.com/tecnickcom/rndpwd/internal/cli"
 	"go.uber.org/zap"

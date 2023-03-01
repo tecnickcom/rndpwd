@@ -7,10 +7,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/nexmoinc/gosrvlib/pkg/bootstrap"
-	"github.com/nexmoinc/gosrvlib/pkg/httputil/jsendx"
-	"github.com/nexmoinc/gosrvlib/pkg/logging"
-	"github.com/nexmoinc/gosrvlib/pkg/testutil"
+	"github.com/Vonage/gosrvlib/pkg/bootstrap"
+	"github.com/Vonage/gosrvlib/pkg/httputil/jsendx"
+	"github.com/Vonage/gosrvlib/pkg/logging"
+	"github.com/Vonage/gosrvlib/pkg/testutil"
 	"github.com/stretchr/testify/require"
 	"github.com/tecnickcom/rndpwd/internal/metrics"
 )
@@ -21,78 +21,76 @@ func Test_bind(t *testing.T) {
 
 	tests := []struct {
 		name           string
-		cfg            *appConfig
+		fcfg           func(cfg appConfig) appConfig
 		preBindAddr    string
 		pingAddr       string
 		wantErr        bool
 		wantTimeoutErr bool
 	}{
 		{
-			name: "fails with monitor port already bound",
-			cfg: &appConfig{
-				Enabled:           false,
-				MonitoringAddress: ":30040",
-				PublicAddress:     ":30041",
+			name: "fails with monitor server port already bound",
+			fcfg: func(cfg appConfig) appConfig {
+				cfg.Enabled = false
+				cfg.Servers.Monitoring.Address = ":30044"
+				cfg.Servers.Public.Address = ":30045"
+				return cfg
 			},
-			preBindAddr:    ":30040",
+			preBindAddr:    ":30044",
 			wantErr:        true,
 			wantTimeoutErr: false,
 		},
 		{
-			name: "fails with bad ipify address",
-			cfg: &appConfig{
-				Enabled:           true,
-				MonitoringAddress: ":30040",
-				PublicAddress:     ":30041",
-				Ipify: ipifyConfig{
-					Address: "test.ipify.url.invalid\u007F",
-					Timeout: 1,
-				},
+			name: "fails with public server port already bound",
+			fcfg: func(cfg appConfig) appConfig {
+				cfg.Enabled = false
+				cfg.Servers.Monitoring.Address = ":30046"
+				cfg.Servers.Public.Address = ":30047"
+				return cfg
+			},
+			preBindAddr:    ":30047",
+			wantErr:        true,
+			wantTimeoutErr: false,
+		},
+		{
+			name: "fails with same server ports",
+			fcfg: func(cfg appConfig) appConfig {
+				cfg.Enabled = false
+				cfg.Servers.Monitoring.Address = ":30043"
+				cfg.Servers.Public.Address = ":30043"
+				return cfg
+			},
+			wantErr: true,
+		},
+		{
+			name: "fails with bad ipify client address",
+			fcfg: func(cfg appConfig) appConfig {
+				cfg.Clients.Ipify.Address = "test.ipify.url.invalid\u007F"
+				return cfg
 			},
 			wantErr:        true,
 			wantTimeoutErr: false,
 		},
 		{
-			name: "fails with service port already bound",
-			cfg: &appConfig{
-				Enabled:           false,
-				MonitoringAddress: ":30040",
-				PublicAddress:     ":30041",
-			},
-			preBindAddr:    ":30041",
-			wantErr:        true,
-			wantTimeoutErr: false,
-		},
-		{
-			name: "succeed with separate ports",
-			cfg: &appConfig{
-				Enabled:           false,
-				MonitoringAddress: ":30040",
-				PublicAddress:     ":30041",
+			name: "succeed with separate server ports",
+			fcfg: func(cfg appConfig) appConfig {
+				cfg.Enabled = false
+				cfg.Servers.Monitoring.Address = ":30041"
+				cfg.Servers.Public.Address = ":30042"
+				return cfg
 			},
 			wantErr: false,
 		},
 		{
-			name: "succeed with same ports",
-			cfg: &appConfig{
-				Enabled:           false,
-				MonitoringAddress: ":30040",
-				PublicAddress:     ":30040",
-			},
-			wantErr: false,
-		},
-		{
-			name: "succeed with enabled flag set",
-			cfg: &appConfig{
-				Enabled:           true,
-				MonitoringAddress: ":30040",
-				PublicAddress:     ":30040",
+			name: "success with all features enabled",
+			fcfg: func(cfg appConfig) appConfig {
+				return cfg
 			},
 			wantErr: false,
 		},
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.preBindAddr != "" {
 				l, err := net.Listen("tcp", tt.preBindAddr)
@@ -100,10 +98,12 @@ func Test_bind(t *testing.T) {
 				defer func() { _ = l.Close() }()
 			}
 
+			cfg := tt.fcfg(getValidTestConfig())
+
 			mtr := metrics.New()
 
 			testBindFn := bind(
-				tt.cfg,
+				&cfg,
 				&jsendx.AppInfo{
 					ProgramName:    "test",
 					ProgramVersion: "0.0.0",
@@ -118,6 +118,7 @@ func Test_bind(t *testing.T) {
 			testBootstrapOpts := []bootstrap.Option{
 				bootstrap.WithContext(testCtx),
 				bootstrap.WithLogger(logging.FromContext(testCtx)),
+				bootstrap.WithCreateMetricsClientFunc(mtr.CreateMetricsClientFunc),
 			}
 			err := bootstrap.Bootstrap(testBindFn, testBootstrapOpts...)
 			if tt.wantErr {

@@ -15,7 +15,7 @@ services:
       - ./target/binutil/dockerize:/usr/bin/dockerize
 
   rndpwd:
-    image: rndpwd/rndpwd:latest
+    image: tecnickcom/rndpwd:latest
     container_name: rndpwd
     restart: always
     env_file:

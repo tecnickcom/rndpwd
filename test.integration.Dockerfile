@@ -1,4 +1,4 @@
-FROM rndpwd/dev_rndpwd
+FROM tecnickcom/dev_rndpwd
 
 RUN mkdir /workspace
 

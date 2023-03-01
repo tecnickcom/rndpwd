@@ -1,8 +1,9 @@
+// Package main is an example web service to generate random passwords.
 package main
 
 import (
-	"github.com/nexmoinc/gosrvlib/pkg/bootstrap"
-	"github.com/nexmoinc/gosrvlib/pkg/logging"
+	"github.com/Vonage/gosrvlib/pkg/bootstrap"
+	"github.com/Vonage/gosrvlib/pkg/logging"
 	"github.com/tecnickcom/rndpwd/internal/cli"
 	"go.uber.org/zap"
 )

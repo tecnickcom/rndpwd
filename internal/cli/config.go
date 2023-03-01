@@ -1,7 +1,7 @@
 package cli
 
 import (
-	"github.com/nexmoinc/gosrvlib/pkg/config"
+	"github.com/Vonage/gosrvlib/pkg/config"
 	"github.com/tecnickcom/rndpwd/internal/validator"
 )
 
@@ -16,16 +16,35 @@ const (
 	appShortDesc = "Web-Service Random Password Generator"
 
 	// appLongDesc is the long description of the application.
-	appLongDesc = "Web-Service Random Password Generator - gosrvlib example"
+	appLongDesc = "Web-Service Random Password Generator"
 
 	// fieldTagName is the name of the tag containing the original JSON field name.
 	fieldTagName = "mapstructure"
 )
 
-// ipifyConfig contains ipify client configuration.
-type ipifyConfig struct {
+type cfgServer struct {
+	Address string `mapstructure:"address" validate:"required,hostname_port"`
+	Timeout int    `mapstructure:"timeout" validate:"required,min=1"`
+}
+
+type cfgServerMonitoring cfgServer
+
+type cfgServerPublic cfgServer
+
+// cfgServers contains the configuration for all exposed servers.
+type cfgServers struct {
+	Monitoring cfgServerMonitoring `mapstructure:"monitoring" validate:"required,hostname_port"`
+	Public     cfgServerPublic     `mapstructure:"public" validate:"required,hostname_port"`
+}
+
+type cfgClientIpify struct {
 	Address string `mapstructure:"address" validate:"required,url"`
 	Timeout int    `mapstructure:"timeout" validate:"required,min=1"`
+}
+
+// cfgClients contains the configuration for all external clients.
+type cfgClients struct {
+	Ipify cfgClientIpify `mapstructure:"ipify" validate:"required"`
 }
 
 // randomConfig contains the random generator configuration.
@@ -39,9 +58,8 @@ type randomConfig struct {
 type appConfig struct {
 	config.BaseConfig `mapstructure:",squash" validate:"required"`
 	Enabled           bool         `mapstructure:"enabled"`
-	MonitoringAddress string       `mapstructure:"monitoring_address" validate:"required,hostname_port"`
-	PublicAddress     string       `mapstructure:"public_address" validate:"required,hostname_port"`
-	Ipify             ipifyConfig  `mapstructure:"ipify" validate:"required"`
+	Servers           cfgServers   `mapstructure:"servers" validate:"required"`
+	Clients           cfgClients   `mapstructure:"clients" validate:"required"`
 	Random            randomConfig `mapstructure:"random" validate:"required"`
 }
 
@@ -49,12 +67,14 @@ type appConfig struct {
 func (c *appConfig) SetDefaults(v config.Viper) {
 	v.SetDefault("enabled", true)
 
-	// Setting the default monitoring_address port to the same as service_port will start a single HTTP server
-	v.SetDefault("monitoring_address", ":8072")
-	v.SetDefault("public_address", ":8071")
+	v.SetDefault("servers.monitoring.address", ":8072")
+	v.SetDefault("servers.monitoring.timeout", 60)
 
-	v.SetDefault("ipify.address", "https://api.ipify.org")
-	v.SetDefault("ipify.timeout", 1)
+	v.SetDefault("servers.public.address", ":8071")
+	v.SetDefault("servers.public.timeout", 60)
+
+	v.SetDefault("clients.ipify.address", "https://api.ipify.org")
+	v.SetDefault("clients.ipify.timeout", 1)
 
 	v.SetDefault("random.charset", validator.ValidCharset)
 	v.SetDefault("random.length", 32)

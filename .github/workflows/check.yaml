@@ -20,13 +20,11 @@ jobs:
           go-version-file: 'go.mod'
           check-latest: true
       - name: dependency cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: $(go env GOPATH)/pkg/mod
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: ${{ runner.os }}-go-
-      - name: granting private modules access
-        run: git config --global url."https://${{ secrets.GH_USER }}:${{ secrets.GH_TOKEN }}@github.com/nexmoinc/".insteadOf "https://github.com/nexmoinc/"
       - name: linter
         run: make mod deps linter GOPATH=$(go env GOPATH)
 
@@ -41,13 +39,11 @@ jobs:
           go-version-file: 'go.mod'
           check-latest: true
       - name: dependency cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: $(go env GOPATH)/pkg/mod
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: ${{ runner.os }}-go-
-      - name: granting private modules access
-        run: git config --global url."https://${{ secrets.GH_USER }}:${{ secrets.GH_TOKEN }}@github.com/nexmoinc/".insteadOf "https://github.com/nexmoinc/"
       - name: unit tests
         run: make mod deps confcheck test GOPATH=$(go env GOPATH)
       - name: coverage report
@@ -66,13 +62,11 @@ jobs:
           go-version-file: 'go.mod'
           check-latest: true
       - name: dependency cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: $(go env GOPATH)/pkg/mod
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: ${{ runner.os }}-go-
-      - name: granting private modules access
-        run: git config --global url."https://${{ secrets.GH_USER }}:${{ secrets.GH_TOKEN }}@github.com/nexmoinc/".insteadOf "https://github.com/nexmoinc/"
       - name: set RELEASE number
         run: echo ${GITHUB_RUN_NUMBER} > RELEASE
       - name: integration tests

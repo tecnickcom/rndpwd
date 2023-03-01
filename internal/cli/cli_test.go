@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/nexmoinc/gosrvlib/pkg/bootstrap"
-	"github.com/nexmoinc/gosrvlib/pkg/testutil"
+	"github.com/Vonage/gosrvlib/pkg/bootstrap"
+	"github.com/Vonage/gosrvlib/pkg/testutil"
 	"github.com/stretchr/testify/require"
 )
 
@@ -55,7 +55,8 @@ func TestNew(t *testing.T) {
 			osArgs:     []string{AppName, "-c"},
 			wantErr:    true,
 			wantOutput: matchErrorOutput,
-		}, {
+		},
+		{
 			name:       "fails with incomplete config dir (long)",
 			osArgs:     []string{AppName, "--configDir"},
 			wantErr:    true,

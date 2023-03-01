@@ -1,52 +1,82 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "rndpwd config",
+  "additionalProperties": false,
   "description": "JSON schema for rndpwd configuration",
-  "type": "object",
   "properties": {
-    "remoteConfigProvider": {
-      "description": "Remote configuration source (if any)",
-      "type": "string",
-      "default": "",
-      "enum": [
-        "",
-        "consul",
-        "etcd",
-        "envvar"
-      ]
+    "clients": {
+      "additionalProperties": false,
+      "description": "Configuration for external service clients",
+      "properties": {
+        "ipify": {
+          "additionalProperties": false,
+          "description": "Configuration for the ipify service client",
+          "examples": [
+            {
+              "address": "https://api.ipify.org",
+              "timeout": 15
+            }
+          ],
+          "properties": {
+            "address": {
+              "default": "",
+              "description": "Base URL of the service",
+              "examples": [
+                "https://api.ipify.org"
+              ],
+              "title": "Address",
+              "type": "string"
+            },
+            "timeout": {
+              "default": 15,
+              "description": "HTTP client timeout [seconds]",
+              "examples": [
+                15
+              ],
+              "title": "Timeout",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "address",
+            "timeout"
+          ],
+          "title": "ipify service client",
+          "type": "object"
+        }
+      },
+      "required": [
+        "ipify"
+      ],
+      "title": "Clients",
+      "type": "object"
     },
-    "remoteConfigEndpoint": {
-      "description": "Remote configuration URL (ip:port)",
-      "type": "string",
-      "default": ""
-    },
-    "remoteConfigPath": {
-      "description": "Remote configuration path in which to search for the configuration file (e.g. '/config/rndpwd')",
-      "type": "string",
-      "default": ""
-    },
-    "remoteConfigSecretKeyring": {
-      "description": "Path to the openpgp secret keyring used to decrypt the remote configuration data (e.g. '/etc/rndpwd/configkey.gpg'); if empty a non secure connection will be used instead",
-      "type": "string",
-      "default": ""
+    "enabled": {
+      "default": true,
+      "description": "Enable or disable the service",
+      "title": "Enabled",
+      "type": "boolean"
     },
     "log": {
-      "description": "Logging settings",
-      "type": "object",
+      "additionalProperties": false,
+      "description": "Logger settings",
       "properties": {
+        "address": {
+          "default": "",
+          "description": "(OPTIONAL) Network address of the (r)Syslog daemon (ip:port) or just (:port)",
+          "type": "string"
+        },
         "format": {
-          "description": "Defines the default log format",
-          "type": "string",
           "default": "JSON",
+          "description": "Defines the default log format",
           "enum": [
             "CONSOLE",
             "JSON"
-          ]
+          ],
+          "type": "string"
         },
         "level": {
-          "description": "Defines the default log level",
-          "type": "string",
           "default": "DEBUG",
+          "description": "Defines the default log level",
           "enum": [
             "EMERGENCY",
             "ALERT",
@@ -56,83 +86,30 @@
             "NOTICE",
             "INFO",
             "DEBUG"
-          ]
+          ],
+          "type": "string"
         },
         "network": {
-          "description": "(OPTIONAL) Network type used by the Syslog",
-          "type": "string",
           "default": "",
+          "description": "(OPTIONAL) Network type used by the (r)Syslog",
           "enum": [
             "",
             "udp",
             "tcp"
-          ]
-        },
-        "address": {
-          "description": "(OPTIONAL) Network address of the Syslog daemon (ip:port) or just (:port)",
-          "type": "string",
-          "default": ""
+          ],
+          "type": "string"
         }
       },
-      "additionalProperties": false,
-      "required": [
-        "level",
-        "network",
-        "address"
-      ]
-    },
-    "enabled": {
-      "description": "Enable or disable the service",
-      "type": "boolean",
-      "default": true
-    },
-    "monitoring_address": {
-      "description": "Monitoring HTTP address (ip:port) or just (:port)",
-      "type": "string",
-      "default": ":8082"
-    },
-    "public_address": {
-      "description": "Public service HTTP address (ip:port) or just (:port)",
-      "type": "string",
-      "default": ":8081"
-    },
-    "ipify": {
-      "type": "object",
-      "title": "ipify service client",
-      "description": "Configuration of the ipify service client",
-      "examples": [
-        {
-          "address": "https://api.ipify.org",
-          "timeout": 5
-        }
-      ],
       "required": [
         "address",
-        "timeout"
+        "level",
+        "network"
       ],
-      "additionalProperties": false,
-      "properties": {
-        "address": {
-          "type": "string",
-          "description": "Base URL of the service",
-          "default": "",
-          "examples": [
-            "https://api.ipify.org"
-          ]
-        },
-        "timeout": {
-          "type": "integer",
-          "description": "HTTP client timeout [seconds]",
-          "default": 1,
-          "examples": [
-            1
-          ]
-        }
-      }
+      "title": "Logger",
+      "type": "object"
     },
     "random": {
-      "type": "object",
-      "title": "Settings for the random generator",
+      "additionalProperties": false,
       "description": "Configuration of the random generator",
       "examples": [
         {
@@ -140,47 +117,160 @@
           "timeout": 5
         }
       ],
+      "properties": {
+        "charset": {
+          "default": "!#$%&()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ^_abcdefghijklmnopqrstuvwxyz~",
+          "description": "String containing the valid characters for a password",
+          "examples": [
+            "0123456789abcdefghijklmnopqrstuvwxyz"
+          ],
+          "type": "string"
+        },
+        "length": {
+          "default": 32,
+          "description": "Length of each password (number of characters or bytes)",
+          "examples": [
+            32
+          ],
+          "type": "integer"
+        },
+        "quantity": {
+          "default": 10,
+          "description": "Number of passwords to return",
+          "examples": [
+            10
+          ],
+          "type": "integer"
+        }
+      },
       "required": [
         "charset",
         "length",
         "quantity"
       ],
+      "title": "Settings for the random generator",
+      "type": "object"
+    },
+    "remoteConfigEndpoint": {
+      "default": "",
+      "description": "Remote configuration URL (ip:port)",
+      "title": "Remote Configuration Endpoint",
+      "type": "string"
+    },
+    "remoteConfigPath": {
+      "default": "",
+      "description": "Remote configuration path in which to search for the configuration file (e.g. '/config/rndpwd')",
+      "title": "Remote Configuration Path",
+      "type": "string"
+    },
+    "remoteConfigProvider": {
+      "default": "",
+      "description": "Remote configuration source type (if any)",
+      "enum": [
+        "",
+        "consul",
+        "etcd",
+        "envvar"
+      ],
+      "title": "Remote Configuration Provider",
+      "type": "string"
+    },
+    "remoteConfigSecretKeyring": {
+      "default": "",
+      "description": "Path to the openpgp secret keyring used to decrypt the remote configuration data (e.g. '/etc/rndpwd/configkey.gpg'); if empty a non secure connection will be used instead",
+      "title": "Remote Configuration Secret Keyring",
+      "type": "string"
+    },
+    "servers": {
       "additionalProperties": false,
+      "description": "Configuration for exposed servers",
       "properties": {
-        "charset": {
-          "description": "String containing the valid characters for a password",
-          "type": "string",
-          "default": "!#$%&()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ^_abcdefghijklmnopqrstuvwxyz~",
+        "monitoring": {
+          "additionalProperties": false,
+          "description": "Configuration for the monitoring server",
           "examples": [
-            "0123456789abcdefghijklmnopqrstuvwxyz"
-          ]
+            {
+              "address": ":8072",
+              "timeout": 60
+            }
+          ],
+          "properties": {
+            "address": {
+              "default": "",
+              "description": "HTTP address (ip:port) or just (:port)",
+              "examples": [
+                ":8072"
+              ],
+              "title": "Address",
+              "type": "string"
+            },
+            "timeout": {
+              "description": "HTTP request timeout [seconds]",
+              "examples": [
+                60
+              ],
+              "title": "Timeout",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "address",
+            "timeout"
+          ],
+          "title": "Monitoring HTTP server",
+          "type": "object"
         },
-        "length": {
-          "description": "Length of each password (number of characters or bytes)",
-          "type": "integer",
-          "default": 32,
+        "public": {
+          "additionalProperties": false,
+          "description": "Configuration for the public server",
           "examples": [
-            32
-          ]
-        },
-        "quantity": {
-          "description": "Number of passwords to return",
-          "type": "integer",
-          "default": 10,
-          "examples": [
-            10
-          ]
+            {
+              "address": ":8071",
+              "timeout": 60
+            }
+          ],
+          "properties": {
+            "address": {
+              "default": "",
+              "description": "HTTP address (ip:port) or just (:port)",
+              "examples": [
+                ":8071"
+              ],
+              "title": "Address",
+              "type": "string"
+            },
+            "timeout": {
+              "description": "HTTP request timeout [seconds]",
+              "examples": [
+                60
+              ],
+              "title": "Timeout",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "address",
+            "timeout"
+          ],
+          "title": "Public HTTP server",
+          "type": "object"
         }
-      }
+      },
+      "required": [
+        "monitoring",
+        "public"
+      ],
+      "title": "Servers",
+      "type": "object"
     }
   },
-  "additionalProperties": false,
   "required": [
-    "log",
+    "clients",
     "enabled",
-    "monitoring_address",
-    "public_address",
-    "ipify",
+    "log",
+    "servers",
     "random"
-  ]
+  ],
+  "title": "Configuration for rndpwd",
+  "type": "object"
 }
