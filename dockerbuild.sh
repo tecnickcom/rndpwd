@@ -50,8 +50,6 @@ mkdir -p /root/.ssh \\
 && echo "[user]" >> /root/.gitconfig \\
 && echo "	email = godev@example.com" >> /root/.gitconfig \\
 && echo "	name = godevlocaltestuser" >> /root/.gitconfig \\
-&& echo "[url \"ssh://git@${CVSPATH}\"]" >> /root/.gitconfig \\
-&& echo "	insteadOf = https://${CVSPATH}" >> /root/.gitconfig \\
 && mkdir -p ${PRJPATH}
 ADD ./ ${PRJPATH}
 WORKDIR ${PRJPATH}
