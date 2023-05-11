@@ -29,6 +29,7 @@ func getValidTestConfig() appConfig {
 				Network: "tcp",
 				Address: "127.0.0.1:1234",
 			},
+			ShutdownTimeout: 2,
 		},
 		Clients: cfgClients{
 			Ipify: cfgClientIpify{
@@ -96,6 +97,11 @@ func Test_appConfig_Validate(t *testing.T) {
 		{
 			name:    "invalid log.address",
 			fcfg:    func(cfg appConfig) appConfig { cfg.Log.Address = "-WRONG_LOG_ADDRESS-"; return cfg },
+			wantErr: true,
+		},
+		{
+			name:    "invalid shutdown_timeout",
+			fcfg:    func(cfg appConfig) appConfig { cfg.ShutdownTimeout = -1; return cfg },
 			wantErr: true,
 		},
 		{

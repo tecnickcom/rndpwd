@@ -63,6 +63,8 @@ The configuration format is a single JSON structure with the following fields:
         * **address**: HTTP address (ip:port) or just (:port)
         * **timeout**: HTTP request timeout [seconds]
 
+* **shutdown_timeout**: Time to wait on exit for a graceful shutdown [seconds]
+
 * **clients**: Configuration for external service clients
     * **ipify**:  ipify service client
         * **address**:  Base URL of the service

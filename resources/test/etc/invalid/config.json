@@ -2,7 +2,7 @@
   "clients": {
     "ipify": {
       "address": "https://test.ipify.url.invalid",
-      "timeout": 1
+      "timeout": 2
     }
   },
   "enabled": true,
@@ -26,6 +26,7 @@
       "timeout": 60
     }
   },
+  "shutdown_timeout": 2,
   "random": {
     "charset": "!#$%&()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ^_abcdefghijklmnopqrstuvwxyz~",
     "length": 32,
