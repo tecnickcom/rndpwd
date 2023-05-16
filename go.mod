@@ -3,7 +3,7 @@ module github.com/tecnickcom/rndpwd
 go 1.20
 
 require (
-	github.com/Vonage/gosrvlib v1.73.1
+	github.com/Vonage/gosrvlib v1.75.1
 	github.com/go-playground/validator/v10 v10.13.0
 	github.com/golang/mock v1.6.0
 	github.com/jstemmer/go-junit-report v1.0.0
@@ -65,9 +65,9 @@ require (
 	github.com/prometheus/client_model v0.4.0 // indirect
 	github.com/prometheus/common v0.43.0 // indirect
 	github.com/prometheus/procfs v0.9.0 // indirect
-	github.com/sagikazarmark/crypt v0.9.0 // indirect
+	github.com/sagikazarmark/crypt v0.10.0 // indirect
 	github.com/spf13/afero v1.9.5 // indirect
-	github.com/spf13/cast v1.5.0 // indirect
+	github.com/spf13/cast v1.5.1 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/subosito/gotenv v1.4.2 // indirect

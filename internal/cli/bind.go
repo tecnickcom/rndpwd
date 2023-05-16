@@ -96,7 +96,8 @@ func bind(cfg *appConfig, appInfo *jsendx.AppInfo, mtr instr.Metrics, wg *sync.W
 			httpserver.WithShutdownSignalChan(sc),
 		}
 
-		if err := httpserver.Start(ctx, httpserver.NopBinder(), httpMonitoringOpts...); err != nil {
+		httpMonitoringServer, err := httpserver.New(ctx, httpserver.NopBinder(), httpMonitoringOpts...)
+		if err != nil {
 			return fmt.Errorf("error starting monitoring HTTP server: %w", err)
 		}
 
@@ -114,9 +115,13 @@ func bind(cfg *appConfig, appInfo *jsendx.AppInfo, mtr instr.Metrics, wg *sync.W
 			httpserver.WithShutdownSignalChan(sc),
 		}
 
-		if err := httpserver.Start(ctx, serviceBinder, httpPublicOpts...); err != nil {
+		httpPublicServer, err := httpserver.New(ctx, serviceBinder, httpPublicOpts...)
+		if err != nil {
 			return fmt.Errorf("error starting public HTTP server: %w", err)
 		}
+
+		httpMonitoringServer.StartServer()
+		httpPublicServer.StartServer()
 
 		return nil
 	}
