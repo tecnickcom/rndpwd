@@ -35,7 +35,7 @@ func TestHTTPHandler_handleGenUID(t *testing.T) {
 
 	(&HTTPHandler{}).handleGenUID(rr, req)
 
-	resp := rr.Result() //nolint:bodyclose
+	resp := rr.Result()
 	require.NotNil(t, resp)
 
 	defer func() {
@@ -88,7 +88,7 @@ func TestHTTPHandler_handlePassword(t *testing.T) {
 
 			h.handlePassword(rr, req)
 
-			resp := rr.Result() //nolint:bodyclose
+			resp := rr.Result()
 			require.NotNil(t, resp)
 
 			defer func() {
