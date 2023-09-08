@@ -18,11 +18,12 @@ set -e -u +x
 : ${CVSPATH:=project}
 : ${VENDOR:=vendor}
 : ${PROJECT:=project}
-: ${MAKETARGET:=format clean mod deps gendoc generate qa build}
+: ${DOCKERTAG:=dev}
+: ${MAKETARGET:=format clean ensuretarget mod deps gendoc generate qa build}
 : ${SSH_PRIVATE_KEY:=$(cat ~/.ssh/id_rsa || cat ~/.ssh/id_ed25519)}
 : ${SSH_PUBLIC_KEY:=$(cat ~/.ssh/id_rsa.pub || cat ~/.ssh/id_ed25519.pub)}
 : ${DOCKER:=$(which docker)}
-: ${DOCKERDEV:=${VENDOR}/dev_${PROJECT}}
+: ${DOCKERDEV:=${VENDOR}/dev_${PROJECT}:${DOCKERTAG}}
 
 # Build the base environment and keep it cached locally.
 ${DOCKER} build --pull --tag ${DOCKERDEV} --file ./resources/docker/Dockerfile.dev ./resources/docker/
@@ -51,13 +52,14 @@ mkdir -p /root/.ssh \\
 && echo "	email = godev@example.com" >> /root/.gitconfig \\
 && echo "	name = godevlocaltestuser" >> /root/.gitconfig \\
 && mkdir -p ${PRJPATH}
-ADD ./ ${PRJPATH}
+COPY ./ ${PRJPATH}
 WORKDIR ${PRJPATH}
 RUN make ${MAKETARGET} || (echo \$? > target/make.exit)
+HEALTHCHECK CMD go version || exit 1
 EOM
 
 # Define the temporary Docker image name.
-DOCKER_IMAGE_NAME=${VENDOR}/build_${PROJECT}
+DOCKER_IMAGE_NAME=${VENDOR}/build_${PROJECT}:${DOCKERTAG}
 
 # Build the Docker image.
 BUILDKIT_PROGRESS=plain \

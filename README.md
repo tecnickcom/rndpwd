@@ -139,6 +139,11 @@ make build
 
 Before committing the code, please check if it passes all tests using
 ```bash
+make x
+```
+
+that is an alias for:
+```bash
 DEVMODE=LOCAL make format clean mod deps generate qa build docker dockertest
 ```
 

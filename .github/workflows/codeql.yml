@@ -9,6 +9,8 @@
 #
 name: "CodeQL"
 
+permissions: read-all
+
 on:
   push:
     branches: [ "main" ]
@@ -17,9 +19,6 @@ on:
     branches: [ "main" ]
   schedule:
     - cron: '22 23 * * 3'
-
-permissions:
-  contents: read
 
 jobs:
   analyze:

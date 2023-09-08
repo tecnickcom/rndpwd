@@ -1,3 +1,4 @@
 FROM scratch
-ADD ./ /
+COPY ./ /
 ENTRYPOINT ["/usr/bin/rndpwd"]
+HEALTHCHECK NONE

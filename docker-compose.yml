@@ -16,7 +16,7 @@ services:
       - ./target/report/:/workspace/target/report/
 
   rndpwd:
-    image: tecnickcom/rndpwd:latest
+    image: tecnickcom/rndpwd
     container_name: rndpwd
     restart: always
     env_file:

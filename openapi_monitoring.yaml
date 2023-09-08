@@ -6,10 +6,12 @@ info:
     email: info@tecnick.com
   license:
     name: Internal use only. All rights reserved.
-    url: 'https://github.com/tecnickcom/rndpwd/blob/main/LICENSE'
+    url: https://github.com/tecnickcom/rndpwd/blob/main/LICENSE
   version: 1.0.0
 servers:
-  - url: 'https://rndpwd:8072/'
+  - url: https://rndpwd:8072/
+security:
+  - {}
 tags:
   - name: index
     description: Service index
@@ -139,7 +141,6 @@ paths:
                   - $ref: '#/components/schemas/response'
                   - type: object
                     properties:
-                      data:
                       data:
                         type: string
                         description: Error
