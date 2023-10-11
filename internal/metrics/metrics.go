@@ -9,7 +9,7 @@ import (
 
 const (
 	// NameExample is the name of an example custom collector.
-	NameExample = "example_collector"
+	NameExample = "example_collector_total"
 
 	labelCode = "code"
 )

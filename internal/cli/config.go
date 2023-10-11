@@ -34,7 +34,7 @@ type cfgServerPublic cfgServer
 // cfgServers contains the configuration for all exposed servers.
 type cfgServers struct {
 	Monitoring cfgServerMonitoring `mapstructure:"monitoring" validate:"required"`
-	Public     cfgServerPublic     `mapstructure:"public" validate:"required"`
+	Public     cfgServerPublic     `mapstructure:"public"     validate:"required"`
 }
 
 type cfgClientIpify struct {
@@ -49,8 +49,8 @@ type cfgClients struct {
 
 // randomConfig contains the random generator configuration.
 type randomConfig struct {
-	Charset  string `mapstructure:"charset" validate:"required,min=2,max=92,rndcharset"`
-	Length   int    `mapstructure:"length" validate:"required,min=2,max=64"`
+	Charset  string `mapstructure:"charset"  validate:"required,min=2,max=92,rndcharset"`
+	Length   int    `mapstructure:"length"   validate:"required,min=2,max=64"`
 	Quantity int    `mapstructure:"quantity" validate:"required,min=1,max=10"`
 }
 
@@ -60,7 +60,7 @@ type appConfig struct {
 	Enabled           bool         `mapstructure:"enabled"`
 	Servers           cfgServers   `mapstructure:"servers" validate:"required"`
 	Clients           cfgClients   `mapstructure:"clients" validate:"required"`
-	Random            randomConfig `mapstructure:"random" validate:"required"`
+	Random            randomConfig `mapstructure:"random"  validate:"required"`
 }
 
 // SetDefaults sets the default configuration values in Viper.

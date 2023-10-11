@@ -8,8 +8,8 @@ import (
 
 // Password contains the random generator configuration.
 type Password struct {
-	Charset  string `json:"charset" validate:"required,min=2,max=92,rndcharset"`
-	Length   int    `json:"length" validate:"required,min=2"`
+	Charset  string `json:"charset"  validate:"required,min=2,max=92,rndcharset"`
+	Length   int    `json:"length"   validate:"required,min=2"`
 	Quantity int    `json:"quantity" validate:"required,min=1"`
 }
 
