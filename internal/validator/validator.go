@@ -18,8 +18,8 @@ var regexValidCharset = regexp.MustCompile("[^" + regexp.QuoteMeta(ValidCharset)
 
 // Validator is the contract with the gosrvlib validator.
 type Validator interface {
-	ValidateStruct(interface{}) error
-	ValidateStructCtx(context.Context, interface{}) error
+	ValidateStruct(s interface{}) error
+	ValidateStructCtx(ctx context.Context, s interface{}) error
 }
 
 // New instantiate a new Validator.

@@ -17,7 +17,7 @@ func Test_appConfig_SetDefaults(t *testing.T) {
 	c.SetDefaults(v)
 
 	require.True(t, v.GetBool("enabled"))
-	require.Equal(t, 10, len(v.AllKeys()))
+	require.Len(t, v.AllKeys(), 10)
 }
 
 func getValidTestConfig() appConfig {
