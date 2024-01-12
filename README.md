@@ -10,7 +10,7 @@
 ![rndpwd logo](doc/images/logo.png)
 
 * **category:**    Application
-* **copyright:**   2015-2023 tecnickcom
+* **copyright:**   2015-2024 tecnickcom
 * **license:**     [LICENSE](https://github.com/tecnickcom/rndpwd/blob/main/LICENSE)
 * **cvs:**         https://github.com/tecnickcom/rndpwd
 
