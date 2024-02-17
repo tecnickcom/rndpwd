@@ -51,7 +51,7 @@ type cfgClients struct {
 type randomConfig struct {
 	Charset  string `mapstructure:"charset"  validate:"required,min=2,max=92,rndcharset"`
 	Length   int    `mapstructure:"length"   validate:"required,min=2,max=64"`
-	Quantity int    `mapstructure:"quantity" validate:"required,min=1,max=10"`
+	Quantity int    `mapstructure:"quantity" validate:"required,min=1,max=1000"`
 }
 
 // appConfig contains the full application configuration.
