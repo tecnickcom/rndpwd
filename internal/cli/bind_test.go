@@ -95,6 +95,7 @@ func Test_bind(t *testing.T) {
 			if tt.preBindAddr != "" {
 				l, err := net.Listen("tcp", tt.preBindAddr)
 				require.NoError(t, err)
+
 				defer func() { _ = l.Close() }()
 			}
 
@@ -125,10 +126,13 @@ func Test_bind(t *testing.T) {
 				bootstrap.WithShutdownWaitGroup(wg),
 				bootstrap.WithShutdownSignalChan(sc),
 			}
+
 			err := bootstrap.Bootstrap(testBindFn, testBootstrapOpts...)
+
 			if tt.wantErr {
 				require.Error(t, err, "bind() error = %v, wantErr %v", err, tt.wantErr)
 			}
+
 			if tt.wantTimeoutErr {
 				require.ErrorIs(t, err, context.DeadlineExceeded,
 					"bind() error = %v, wantErr %v", err, context.DeadlineExceeded)

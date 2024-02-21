@@ -80,7 +80,7 @@ func TestNew(t *testing.T) {
 		{
 			name:   "bootstrap with valid configuration",
 			osArgs: []string{AppName, "-c", "../../resources/test/etc/rndpwd/"},
-			boostrapFunc: func(bindFn bootstrap.BindFunc, opts ...bootstrap.Option) error {
+			boostrapFunc: func(_ bootstrap.BindFunc, _ ...bootstrap.Option) error {
 				return nil
 			},
 			wantErr: false,
@@ -91,7 +91,9 @@ func TestNew(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			oldOsArgs := os.Args
+
 			defer func() { os.Args = oldOsArgs }()
+
 			os.Args = tt.osArgs
 
 			bootstrapFunc := bootstrap.Bootstrap
@@ -101,7 +103,9 @@ func TestNew(t *testing.T) {
 
 			// execute the main function
 			var out string
+
 			cmd, err := New("0.0.0-test", "0", bootstrapFunc)
+
 			if err == nil {
 				require.NotNil(t, cmd)
 

@@ -43,7 +43,7 @@ func New(fieldTagName string) (Validator, error) {
 }
 
 func validateRandomCharset() vt.FuncCtx {
-	return func(ctx context.Context, fl vt.FieldLevel) bool {
+	return func(_ context.Context, fl vt.FieldLevel) bool {
 		value := fl.Field().String()
 		if value == "" {
 			// empty fields are already checked by 'required'
