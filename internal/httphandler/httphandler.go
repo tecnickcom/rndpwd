@@ -5,7 +5,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/Vonage/gosrvlib/pkg/httpserver/route"
+	"github.com/Vonage/gosrvlib/pkg/httpserver"
 	"github.com/Vonage/gosrvlib/pkg/httputil"
 	"github.com/Vonage/gosrvlib/pkg/httputil/jsendx"
 	"github.com/Vonage/gosrvlib/pkg/uidc"
@@ -42,8 +42,8 @@ func New(appInfo *jsendx.AppInfo, metric metrics.Metrics, val validator.Validato
 }
 
 // BindHTTP implements the function to bind the handler to a server.
-func (h *HTTPHandler) BindHTTP(_ context.Context) []route.Route {
-	return []route.Route{
+func (h *HTTPHandler) BindHTTP(_ context.Context) []httpserver.Route {
+	return []httpserver.Route{
 		{
 			Method:      http.MethodGet,
 			Path:        "/password",
