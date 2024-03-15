@@ -2,6 +2,8 @@ module github.com/tecnickcom/rndpwd
 
 go 1.22
 
+toolchain go1.22.1
+
 require (
 	github.com/Vonage/gosrvlib v1.83.5
 	github.com/go-playground/validator/v10 v10.19.0
