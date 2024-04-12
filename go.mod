@@ -5,7 +5,7 @@ go 1.22
 toolchain go1.22.2
 
 require (
-	github.com/Vonage/gosrvlib v1.83.8
+	github.com/Vonage/gosrvlib v1.83.9
 	github.com/go-playground/validator/v10 v10.19.0
 	github.com/golang/mock v1.6.0
 	github.com/jstemmer/go-junit-report v1.0.0
