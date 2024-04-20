@@ -19,7 +19,7 @@ jobs:
       - name: install tools
         run: pip install --upgrade check-jsonschema
       - name: setup go build environment
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
           go-version-file: 'go.mod'
           check-latest: true
@@ -40,7 +40,7 @@ jobs:
       - name: install tools
         run: pip install --upgrade check-jsonschema
       - name: setup go build environment
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
           go-version-file: 'go.mod'
           check-latest: true
@@ -65,7 +65,7 @@ jobs:
       - name: install tools
         run: pip install --upgrade check-jsonschema
       - name: setup go build environment
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
           go-version-file: 'go.mod'
           check-latest: true
