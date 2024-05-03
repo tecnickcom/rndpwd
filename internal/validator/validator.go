@@ -11,7 +11,7 @@ import (
 
 const (
 	// ValidCharset is a string containing the valid characters for a password.
-	ValidCharset = "!#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcdefghijklmnopqrstuvwxyz{|}~"
+	ValidCharset = "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"
 )
 
 var regexValidCharset = regexp.MustCompile("[^" + regexp.QuoteMeta(ValidCharset) + "]")

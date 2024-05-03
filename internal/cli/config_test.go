@@ -179,13 +179,13 @@ func Test_appConfig_Validate(t *testing.T) {
 		},
 		{
 			name:    "too small random.charset",
-			fcfg:    func(cfg appConfig) appConfig { cfg.Random.Charset = "a"; return cfg },
+			fcfg:    func(cfg appConfig) appConfig { cfg.Random.Charset = ""; return cfg },
 			wantErr: true,
 		},
 		{
 			name: "too big random.charset",
 			fcfg: func(cfg appConfig) appConfig {
-				cfg.Random.Charset = "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789"
+				cfg.Random.Charset = string(make([]byte, 257))
 				return cfg
 			},
 			wantErr: true,
@@ -200,7 +200,7 @@ func Test_appConfig_Validate(t *testing.T) {
 		},
 		{
 			name:    "too small random.length",
-			fcfg:    func(cfg appConfig) appConfig { cfg.Random.Length = 1; return cfg },
+			fcfg:    func(cfg appConfig) appConfig { cfg.Random.Length = 0; return cfg },
 			wantErr: true,
 		},
 		{

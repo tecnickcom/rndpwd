@@ -2,15 +2,15 @@
 package password
 
 import (
-	"crypto/rand"
-	"math/big"
+	"github.com/Vonage/gosrvlib/pkg/random"
 )
 
 // Password contains the random generator configuration.
 type Password struct {
-	Charset  string `json:"charset"  validate:"required,min=2,max=92,rndcharset"`
-	Length   int    `json:"length"   validate:"required,min=2"`
-	Quantity int    `json:"quantity" validate:"required,min=1"`
+	Charset  string `json:"charset"  validate:"required,min=1,max=256,rndcharset"`
+	Length   int    `json:"length"   validate:"required,min=1,max=4096"`
+	Quantity int    `json:"quantity" validate:"required,min=1,max=1000"`
+	rnd      *random.Rnd
 }
 
 // New instantiate a new Password generator object.
@@ -19,6 +19,7 @@ func New(charset string, length, quantity int) *Password {
 		Charset:  charset,
 		Length:   length,
 		Quantity: quantity,
+		rnd:      random.New(nil, random.WithByteToCharMap([]byte(charset))),
 	}
 }
 
@@ -27,24 +28,8 @@ func (p *Password) Generate() []string {
 	lst := make([]string, p.Quantity)
 
 	for i := 0; i < p.Quantity; i++ {
-		lst[i] = p.newPassword()
+		lst[i], _ = p.rnd.RandString(p.Length)
 	}
 
 	return lst
-}
-
-// newPassword returns a random password containing "length" characters from the "charset" string.
-func (p *Password) newPassword() string {
-	pwd := make([]byte, p.Length)
-	chars := []byte(p.Charset)
-	maxValue := new(big.Int).SetInt64(int64(len(p.Charset)))
-
-	for i := 0; i < p.Length; i++ {
-		rnd, err := rand.Int(rand.Reader, maxValue)
-		if err == nil {
-			pwd[i] = chars[rnd.Int64()]
-		}
-	}
-
-	return string(pwd)
 }
