@@ -27,7 +27,7 @@ func New(charset string, length, quantity int) *Password {
 func (p *Password) Generate() []string {
 	lst := make([]string, p.Quantity)
 
-	for i := 0; i < p.Quantity; i++ {
+	for i := range p.Quantity {
 		lst[i], _ = p.rnd.RandString(p.Length)
 	}
 
