@@ -204,19 +204,18 @@ DOCKER_REGISTRY_PUSH=
 
 # Command used to login into the Docker pull repository
 # Example: "aws --profile MYENVPROFILE ecr get-login --no-include-email --region ${AWS_REGION} | sed 's|https://||'"
-DOCKER_LOGIN_PULL="echo skip"
+DOCKER_LOGIN_PULL="echo"
 
 # Command used to login into the Docker push repository
 # Example: "aws --profile MYENVPROFILE ecr get-login --no-include-email --region ${AWS_REGION} | sed 's|https://||'"
-DOCKER_LOGIN_PUSH="echo skip"
+DOCKER_LOGIN_PUSH="echo"
 
 # INT - integration environment via docker-compose
 ifeq ($(DEPLOY_ENV), int)
+	#ECR_PROFILE=
 	DOCKER_REGISTRY=${DOCKER_REGISTRY_DEV}
 	#DOCKER_REGISTRY_PULL=
 	#DOCKER_REGISTRY_PUSH=
-	#DOCKER_LOGIN_PULL=
-	#DOCKER_LOGIN_PUSH=
 	RNDPWD_URL=http://rndpwd:8071
 	RNDPWD_MONITORING_URL=http://rndpwd:8072
 	API_TEST_FILE=*.yaml
@@ -224,11 +223,10 @@ endif
 
 # Development environment
 ifeq ($(DEPLOY_ENV), dev)
+	#ECR_PROFILE=
 	DOCKER_REGISTRY=${DOCKER_REGISTRY_DEV}
 	#DOCKER_REGISTRY_PULL=
 	DOCKER_REGISTRY_PUSH=${DOCKER_REGISTRY_DEV}
-	#DOCKER_LOGIN_PULL=
-	#DOCKER_LOGIN_PUSH=
 	RNDPWD_URL=http://rndpwd:8071
 	RNDPWD_MONITORING_URL=http://rndpwd:8072
 	API_TEST_FILE=*.yaml
@@ -236,22 +234,20 @@ endif
 
 # QA environment
 ifeq ($(DEPLOY_ENV), qa)
+	#ECR_PROFILE=
 	DOCKER_REGISTRY=${DOCKER_REGISTRY_QA}
 	DOCKER_REGISTRY_PULL=${DOCKER_REGISTRY_DEV}
 	DOCKER_REGISTRY_PUSH=${DOCKER_REGISTRY_QA}
-	#DOCKER_LOGIN_PULL=
-	#DOCKER_LOGIN_PUSH=
 	RNDPWD_URL=http://rndpwd:8071
 	RNDPWD_MONITORING_URL=http://rndpwd:8072
 endif
 
 # Production environment
 ifeq ($(DEPLOY_ENV), prod)
+	#ECR_PROFILE=
 	DOCKER_REGISTRY=${DOCKER_REGISTRY_PROD}
 	DOCKER_REGISTRY_PULL=${DOCKER_REGISTRY_QA}
 	DOCKER_REGISTRY_PUSH=${DOCKER_REGISTRY_PROD}
-	#DOCKER_LOGIN_PULL=
-	#DOCKER_LOGIN_PUSH=
 	RNDPWD_URL=http://rndpwd:8071
 	RNDPWD_MONITORING_URL=http://rndpwd:8072
 	API_TEST_FILE=*.yaml
@@ -428,6 +424,20 @@ endif
 	$(MAKE) install DESTDIR=$(PATHDOCKERPKG)
 	$(MAKE) installssl DESTDIR=$(PATHDOCKERPKG)
 	cp resources/docker/Dockerfile.run $(PATHDOCKERPKG)/Dockerfile
+
+# Login into Docker AWS ECR
+.PHONY: ecrlogin
+ecrlogin:
+ifeq ($(ECR_REGISTRY),)
+    # skip login
+else
+# check the main version of aws-cli
+ifeq ($(shell aws --version 2>&1 | cut -d " " -f1 | cut -d "/" -f2 | cut -d "." -f1), 1)
+	$(shell aws $(ECR_PROFILE) ecr get-login --no-include-email --region $(AWS_DEFAULT_REGION) | sed 's|https://||')
+else
+	aws $(ECR_PROFILE) ecr get-login-password --region $(AWS_DEFAULT_REGION) | $(DOCKER) login --password-stdin --username AWS $(ECR_REGISTRY)
+endif
+endif
 
 # Promote docker image from DEV to PROD
 .PHONY: dockerpromote
