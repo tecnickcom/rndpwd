@@ -149,7 +149,7 @@ GOFMT=$(shell which gofmt)
 GOTEST=GOPATH=$(GOPATH) $(shell which gotest)
 GODOC=GOPATH=$(GOPATH) $(shell which godoc)
 GOLANGCILINT=$(BINUTIL)/golangci-lint
-GOLANGCILINTVERSION=v1.62.2
+GOLANGCILINTVERSION=v1.63.4
 
 # Current operating system and architecture as one string.
 GOOSARCH=$(shell go env GOOS GOARCH | tr -d \\n)
@@ -623,7 +623,7 @@ schemathesistest:
 	--request-timeout=2000 \
 	--hypothesis-max-examples=100 \
 	--hypothesis-deadline=2000 \
-	--show-errors-tracebacks \
+	--show-trace \
 	--base-url='${API_TEST_URL}' \
 	${OPENAPI_FILE}
 
