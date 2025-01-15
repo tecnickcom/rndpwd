@@ -542,6 +542,7 @@ ifneq ($(strip $(MANPATH)),)
 	cat ./resources/${MANPATH}${PROJECT}.1 | gzip -9 > $(PATHINSTMAN)${PROJECT}.1.gz
 	find $(PATHINSTMAN) -type f -exec chmod 644 {} \;
 endif
+	echo 'nonroot:*:65532:65532:nonroot:/nonexistent:/bin/false' > $(DESTDIR)/etc/passwd
 
 # Install TLS root CA certificates
 .PHONY: installssl

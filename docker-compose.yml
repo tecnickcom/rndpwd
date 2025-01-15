@@ -1,5 +1,3 @@
-version: '3.3'
-
 services:
   rndpwd_integration:
     container_name: rndpwd_integration

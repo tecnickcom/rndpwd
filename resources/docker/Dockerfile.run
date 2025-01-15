@@ -1,4 +1,5 @@
 FROM scratch
 COPY ./ /
+USER nonroot
 ENTRYPOINT ["/usr/bin/rndpwd"]
 HEALTHCHECK NONE
