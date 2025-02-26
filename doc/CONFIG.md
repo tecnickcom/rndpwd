@@ -86,15 +86,15 @@ For example:
 
 ## Validating Configuration
 
-The [check-jsonschema](https://github.com/python-jsonschema/check-jsonschema) Python program can be used to check the validity of the configuration file against the JSON schema.
-It can be installed using the Python pip install tool:
+The [jv](https://github.com/santhosh-tekuri/jsonschema) program can be used to check the validity of the configuration file against the JSON schema.
+It can be installed via:
 
 ```
-sudo pip install check-jsonschema
+go install github.com/santhosh-tekuri/jsonschema/cmd/jv@latest
 ```
 
 Example usage:
 
 ```
-check-jsonschema --schemafile resources/etc/rndpwd/config.schema.json resources/etc/rndpwd/config.json
+jv resources/etc/rndpwd/config.schema.json resources/etc/rndpwd/config.json
 ```
