@@ -149,7 +149,7 @@ GOFMT=$(shell which gofmt)
 GOTEST=GOPATH=$(GOPATH) $(shell which gotest)
 GODOC=GOPATH=$(GOPATH) $(shell which godoc)
 GOLANGCILINT=$(BINUTIL)/golangci-lint
-GOLANGCILINTVERSION=v1.64.5
+GOLANGCILINTVERSION=v2.0.2
 DOCKERIZEVERSION=v0.9.2
 
 # Current operating system and architecture as one string.
@@ -395,7 +395,7 @@ endif
 deps: ensuretarget
 	curl --silent --show-error --fail --location https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(BINUTIL) $(GOLANGCILINTVERSION)
 	$(GO) install github.com/golang/mock/mockgen
-	$(GO) install github.com/hairyhenderson/gomplate/v3/cmd/gomplate@latest
+	$(GO) install github.com/hairyhenderson/gomplate/v4/cmd/gomplate@latest
 	$(GO) install github.com/jstemmer/go-junit-report/v2@latest
 	$(GO) install github.com/mikefarah/yq/v4@latest
 	$(GO) install github.com/rakyll/gotest
@@ -569,7 +569,7 @@ endif
 .PHONY: linter
 linter:
 	@echo -e "\n\n>>> START: Static code analysis <<<\n\n"
-	$(GOLANGCILINT) run --exclude-use-default=false --max-issues-per-linter 0 --max-same-issues 0 $(CMDDIR)/... $(SRCDIR)/...
+	$(GOLANGCILINT) run --max-issues-per-linter 0 --max-same-issues 0 $(CMDDIR)/... $(SRCDIR)/...
 	@echo -e "\n\n>>> END: Static code analysis <<<\n\n"
 
 # Download dependencies
