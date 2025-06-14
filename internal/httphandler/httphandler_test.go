@@ -64,16 +64,62 @@ func TestHTTPHandler_handlePassword(t *testing.T) {
 
 	tests := []struct {
 		name    string
-		charset string
+		params  string
 		wantErr bool
 	}{
 		{
-			name:    "valid",
+			name:    "valid empty",
+			params:  "",
 			wantErr: false,
 		},
 		{
-			name:    "invalid",
-			charset: "in va lid",
+			name:    "valid length",
+			params:  "?length=16",
+			wantErr: false,
+		},
+		{
+			name:    "valid quantity",
+			params:  "?quantity=3",
+			wantErr: false,
+		},
+		{
+			name:    "valid charset",
+			params:  "?charset=0123456789abcdefghijklmnopqrstuvwxyz",
+			wantErr: false,
+		},
+		{
+			name:    "valid all params",
+			params:  "?charset=0123456789&length=8&quantity=1",
+			wantErr: false,
+		},
+		{
+			name:    "invalid charset",
+			params:  "?charset=in va lid",
+			wantErr: true,
+		},
+		{
+			name:    "invalid parameter",
+			params:  "?invalid=3",
+			wantErr: true,
+		},
+		{
+			name:    "empty parameter",
+			params:  "?quantity=",
+			wantErr: true,
+		},
+		{
+			name:    "not integer length",
+			params:  "?length=abc",
+			wantErr: true,
+		},
+		{
+			name:    "not integer quantity",
+			params:  "?quantity=abc",
+			wantErr: true,
+		},
+		{
+			name:    "duplicate parameter",
+			params:  "?quantity=1&quatity=2",
 			wantErr: true,
 		},
 	}
@@ -83,7 +129,7 @@ func TestHTTPHandler_handlePassword(t *testing.T) {
 			t.Parallel()
 
 			rr := httptest.NewRecorder()
-			req, _ := http.NewRequestWithContext(testutil.Context(), http.MethodGet, "/?charset="+tt.charset, nil)
+			req, _ := http.NewRequestWithContext(testutil.Context(), http.MethodGet, "/"+tt.params, nil)
 
 			h.handlePassword(rr, req)
 

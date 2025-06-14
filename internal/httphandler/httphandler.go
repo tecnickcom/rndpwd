@@ -4,6 +4,7 @@ package httphandler
 import (
 	"context"
 	"net/http"
+	"strconv"
 
 	"github.com/Vonage/gosrvlib/pkg/httpserver"
 	"github.com/Vonage/gosrvlib/pkg/httputil"
@@ -64,7 +65,20 @@ func (h *HTTPHandler) handleGenUID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *HTTPHandler) handlePassword(w http.ResponseWriter, r *http.Request) {
+	validParam := map[string]bool{
+		"charset":  true,
+		"length":   true,
+		"quantity": true,
+	}
+
 	query := r.URL.Query()
+
+	for param := range query {
+		if !validParam[param] || (len(query[param]) > 1) || (query.Get(param) == "") || (param != "charset" && !isInteger(query.Get(param))) {
+			httputil.SendJSON(r.Context(), w, http.StatusBadRequest, "invalid query parameter")
+			return
+		}
+	}
 
 	// URL query parameters can override the config settings
 	p := password.New(
@@ -79,4 +93,9 @@ func (h *HTTPHandler) handlePassword(w http.ResponseWriter, r *http.Request) {
 	}
 
 	httputil.SendJSON(r.Context(), w, http.StatusOK, p.Generate())
+}
+
+func isInteger(s string) bool {
+	_, err := strconv.ParseInt(s, 10, 64)
+	return err == nil
 }

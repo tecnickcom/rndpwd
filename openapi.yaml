@@ -75,10 +75,10 @@ components:
       required: false
       schema:
         type: string
-        minLength: 2
-        maxLength: 92
-        description: String containing the valid characters for a password
-        example: charset=0123456789abcdefghijklmnopqrstuvwxyz
+        minLength: 1
+        maxLength: 256
+        pattern: '^[!"#$%&''()*+,\-./0-9:;<=>?@A-Z\[\\\]^_`a-z{|}~]+$'
+      example: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
     length:
       description: Password length.
       in: query
@@ -86,8 +86,10 @@ components:
       required: false
       schema:
         type: integer
-        minimum: 2
-        maximum: 64
+        minimum: 1
+        maximum: 4096
+        default: 32
+      example: 16
     quantity:
       description: Number passwords to generate.
       in: query
@@ -96,4 +98,6 @@ components:
       schema:
         type: integer
         minimum: 1
-        maximum: 10
+        maximum: 1000
+        default: 10
+      example: 2

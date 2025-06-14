@@ -106,7 +106,7 @@ paths:
       responses:
         '200':
           description: Prometheus metrics
-  /pprof:
+  /pprof/:
     get:
       tags:
         - pprof
