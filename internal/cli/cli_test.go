@@ -104,7 +104,6 @@ func TestNew(t *testing.T) {
 			var out string
 
 			cmd, err := New("0.0.0-test", "0", bootstrapFunc)
-
 			if err == nil {
 				require.NotNil(t, cmd)
 

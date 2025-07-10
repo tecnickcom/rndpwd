@@ -87,7 +87,8 @@ func (h *HTTPHandler) handlePassword(w http.ResponseWriter, r *http.Request) {
 		httputil.QueryIntOrDefault(query, "quantity", h.rndpwd.Quantity),
 	)
 
-	if err := h.val.ValidateStruct(p); err != nil {
+	err := h.val.ValidateStruct(p)
+	if err != nil {
 		httputil.SendJSON(r.Context(), w, http.StatusBadRequest, err.Error())
 		return
 	}
