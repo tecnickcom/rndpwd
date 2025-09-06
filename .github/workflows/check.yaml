@@ -15,9 +15,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: setup go build environment
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version-file: 'go.mod'
           check-latest: true
@@ -34,9 +34,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: setup go build environment
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version-file: 'go.mod'
           check-latest: true
@@ -49,17 +49,19 @@ jobs:
       - name: unit tests
         run: make mod deps confcheck test GOPATH=$(go env GOPATH)
       - name: coverage report
-        uses: shogo82148/actions-goveralls@v1
+        uses: coverallsapp/github-action@v2
+        continue-on-error: true
         with:
-          path-to-profile: target/report/coverage.out
+          file: target/report/coverage.out
+          format: golang
 
   integration-test:
     runs-on: ubuntu-latest
     steps:
       - name: checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: setup go build environment
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version-file: 'go.mod'
           check-latest: true
