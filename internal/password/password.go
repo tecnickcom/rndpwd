@@ -2,7 +2,7 @@
 package password
 
 import (
-	"github.com/Vonage/gosrvlib/pkg/random"
+	"github.com/tecnickcom/gogen/pkg/random"
 )
 
 // Password contains the random generator configuration.

@@ -31,9 +31,7 @@ func TestGenerate(t *testing.T) {
 func BenchmarkGenerate(b *testing.B) {
 	p := New(validator.ValidCharset, 32, 1)
 
-	b.ResetTimer()
-
-	for range b.N {
+	for b.Loop() {
 		p.Generate()
 	}
 }

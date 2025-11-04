@@ -6,11 +6,11 @@ import (
 	"os"
 	"sync"
 
-	"github.com/Vonage/gosrvlib/pkg/bootstrap"
-	"github.com/Vonage/gosrvlib/pkg/config"
-	"github.com/Vonage/gosrvlib/pkg/httputil/jsendx"
-	"github.com/Vonage/gosrvlib/pkg/logging"
 	"github.com/spf13/cobra"
+	"github.com/tecnickcom/gogen/pkg/bootstrap"
+	"github.com/tecnickcom/gogen/pkg/config"
+	"github.com/tecnickcom/gogen/pkg/httputil/jsendx"
+	"github.com/tecnickcom/gogen/pkg/logging"
 	"github.com/tecnickcom/rndpwd/internal/metrics"
 )
 

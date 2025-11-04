@@ -5,9 +5,9 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/Vonage/gosrvlib/pkg/logging"
-	"github.com/Vonage/gosrvlib/pkg/testutil"
 	"github.com/stretchr/testify/require"
+	"github.com/tecnickcom/gogen/pkg/logging"
+	"github.com/tecnickcom/gogen/pkg/testutil"
 	"github.com/tecnickcom/rndpwd/internal/cli"
 	"go.uber.org/zap"
 )

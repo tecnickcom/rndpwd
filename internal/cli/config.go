@@ -1,7 +1,7 @@
 package cli
 
 import (
-	"github.com/Vonage/gosrvlib/pkg/config"
+	"github.com/tecnickcom/gogen/pkg/config"
 	"github.com/tecnickcom/rndpwd/internal/validator"
 )
 

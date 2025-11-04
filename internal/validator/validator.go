@@ -5,8 +5,8 @@ import (
 	"context"
 	"regexp"
 
-	val "github.com/Vonage/gosrvlib/pkg/validator"
 	vt "github.com/go-playground/validator/v10"
+	val "github.com/tecnickcom/gogen/pkg/validator"
 )
 
 const (
@@ -18,8 +18,8 @@ var regexValidCharset = regexp.MustCompile("[^" + regexp.QuoteMeta(ValidCharset)
 
 // Validator is the contract with the gosrvlib validator.
 type Validator interface {
-	ValidateStruct(s interface{}) error
-	ValidateStructCtx(ctx context.Context, s interface{}) error
+	ValidateStruct(s any) error
+	ValidateStructCtx(ctx context.Context, s any) error
 }
 
 // New instantiate a new Validator.
