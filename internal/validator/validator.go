@@ -16,7 +16,7 @@ const (
 
 var regexValidCharset = regexp.MustCompile("[^" + regexp.QuoteMeta(ValidCharset) + "]")
 
-// Validator is the contract with the gosrvlib validator.
+// Validator is the contract with the parent validator.
 type Validator interface {
 	ValidateStruct(s any) error
 	ValidateStructCtx(ctx context.Context, s any) error
