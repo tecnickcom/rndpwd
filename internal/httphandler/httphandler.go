@@ -3,6 +3,7 @@ package httphandler
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 	"strconv"
 
@@ -20,6 +21,7 @@ type Service any
 
 // HTTPHandler is the struct containing all the http handlers.
 type HTTPHandler struct {
+	httpres *httputil.HTTPResp
 	appInfo *jsendx.AppInfo
 	metric  metrics.Metrics
 	val     validator.Validator
@@ -27,8 +29,9 @@ type HTTPHandler struct {
 }
 
 // New creates a new instance of the HTTP handler.
-func New(appInfo *jsendx.AppInfo, metric metrics.Metrics, val validator.Validator, rndpwd *password.Password) *HTTPHandler {
+func New(l *slog.Logger, appInfo *jsendx.AppInfo, metric metrics.Metrics, val validator.Validator, rndpwd *password.Password) *HTTPHandler {
 	return &HTTPHandler{
+		httpres: httputil.NewHTTPResp(l),
 		appInfo: appInfo,
 		metric:  metric,
 		val:     val,
@@ -55,7 +58,7 @@ func (h *HTTPHandler) BindHTTP(_ context.Context) []httpserver.Route {
 }
 
 func (h *HTTPHandler) handleGenUID(w http.ResponseWriter, r *http.Request) {
-	httputil.SendJSON(r.Context(), w, http.StatusOK, uidc.NewID128())
+	h.httpres.SendJSON(r.Context(), w, http.StatusOK, uidc.NewID128())
 }
 
 func (h *HTTPHandler) handlePassword(w http.ResponseWriter, r *http.Request) {
@@ -69,7 +72,7 @@ func (h *HTTPHandler) handlePassword(w http.ResponseWriter, r *http.Request) {
 
 	for param := range query {
 		if !validParam[param] || (len(query[param]) > 1) || (query.Get(param) == "") || (param != "charset" && !isInteger(query.Get(param))) {
-			httputil.SendJSON(r.Context(), w, http.StatusBadRequest, "invalid query parameter")
+			h.httpres.SendJSON(r.Context(), w, http.StatusBadRequest, "invalid query parameter")
 			return
 		}
 	}
@@ -83,11 +86,11 @@ func (h *HTTPHandler) handlePassword(w http.ResponseWriter, r *http.Request) {
 
 	err := h.val.ValidateStruct(p)
 	if err != nil {
-		httputil.SendJSON(r.Context(), w, http.StatusBadRequest, err.Error())
+		h.httpres.SendJSON(r.Context(), w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	httputil.SendJSON(r.Context(), w, http.StatusOK, p.Generate())
+	h.httpres.SendJSON(r.Context(), w, http.StatusOK, p.Generate())
 }
 
 func isInteger(s string) bool {

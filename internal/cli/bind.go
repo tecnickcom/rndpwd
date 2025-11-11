@@ -3,6 +3,7 @@ package cli
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"sync"
 	"time"
@@ -11,6 +12,7 @@ import (
 	"github.com/tecnickcom/gogen/pkg/healthcheck"
 	"github.com/tecnickcom/gogen/pkg/httpclient"
 	"github.com/tecnickcom/gogen/pkg/httpserver"
+	"github.com/tecnickcom/gogen/pkg/httputil"
 	"github.com/tecnickcom/gogen/pkg/httputil/jsendx"
 	"github.com/tecnickcom/gogen/pkg/ipify"
 	"github.com/tecnickcom/gogen/pkg/metrics"
@@ -19,18 +21,20 @@ import (
 	instr "github.com/tecnickcom/rndpwd/internal/metrics"
 	"github.com/tecnickcom/rndpwd/internal/password"
 	"github.com/tecnickcom/rndpwd/internal/validator"
-	"go.uber.org/zap"
 )
 
 // bind is the entry point of the service, this is where the wiring of all components happens.
 func bind(cfg *appConfig, appInfo *jsendx.AppInfo, mtr instr.Metrics, wg *sync.WaitGroup, sc chan struct{}) bootstrap.BindFunc {
-	return func(ctx context.Context, _ *zap.Logger, m metrics.Client) error {
+	return func(ctx context.Context, l *slog.Logger, m metrics.Client) error {
+		jsx := jsendx.NewJSXResp(httputil.NewHTTPResp(l))
+
 		// We assume the service is disabled and override the service binder if required
 		serviceBinder := httpserver.NopBinder()
-		statusHandler := jsendx.DefaultStatusHandler(appInfo)
+		statusHandler := jsx.DefaultStatusHandler(appInfo)
 
 		// common HTTP client options used for all outbound requests
 		httpClientOpts := []httpclient.Option{
+			httpclient.WithLogger(l),
 			httpclient.WithRoundTripper(m.InstrumentRoundTripper),
 			httpclient.WithTraceIDHeaderName(traceid.DefaultHeader),
 			httpclient.WithComponent(appInfo.ProgramName),
@@ -55,6 +59,7 @@ func bind(cfg *appConfig, appInfo *jsendx.AppInfo, mtr instr.Metrics, wg *sync.W
 
 			// wire the binder
 			serviceBinder = httphandler.New(
+				l,
 				appInfo,
 				mtr,
 				val,
@@ -68,7 +73,7 @@ func bind(cfg *appConfig, appInfo *jsendx.AppInfo, mtr instr.Metrics, wg *sync.W
 			// override the default healthcheck handler
 			healthCheckHandler := healthcheck.NewHandler(
 				[]healthcheck.HealthCheck{},
-				healthcheck.WithResultWriter(jsendx.HealthCheckResultWriter(appInfo)),
+				healthcheck.WithResultWriter(jsx.HealthCheckResultWriter(appInfo)),
 			)
 			statusHandler = healthCheckHandler.ServeHTTP
 		}
@@ -79,18 +84,19 @@ func bind(cfg *appConfig, appInfo *jsendx.AppInfo, mtr instr.Metrics, wg *sync.W
 
 		// start monitoring server
 		httpMonitoringOpts := []httpserver.Option{
+			httpserver.WithLogger(l),
 			httpserver.WithServerAddr(cfg.Servers.Monitoring.Address),
 			httpserver.WithRequestTimeout(time.Duration(cfg.Servers.Monitoring.Timeout) * time.Second),
 			httpserver.WithMetricsHandlerFunc(m.MetricsHandlerFunc()),
 			httpserver.WithTraceIDHeaderName(traceid.DefaultHeader),
 			httpserver.WithMiddlewareFn(middleware),
-			httpserver.WithNotFoundHandlerFunc(jsendx.DefaultNotFoundHandlerFunc(appInfo)),
-			httpserver.WithMethodNotAllowedHandlerFunc(jsendx.DefaultMethodNotAllowedHandlerFunc(appInfo)),
-			httpserver.WithPanicHandlerFunc(jsendx.DefaultPanicHandlerFunc(appInfo)),
+			httpserver.WithNotFoundHandlerFunc(jsx.DefaultNotFoundHandlerFunc(appInfo)),
+			httpserver.WithMethodNotAllowedHandlerFunc(jsx.DefaultMethodNotAllowedHandlerFunc(appInfo)),
+			httpserver.WithPanicHandlerFunc(jsx.DefaultPanicHandlerFunc(appInfo)),
 			httpserver.WithEnableAllDefaultRoutes(),
-			httpserver.WithIndexHandlerFunc(jsendx.DefaultIndexHandler(appInfo)),
-			httpserver.WithIPHandlerFunc(jsendx.DefaultIPHandler(appInfo, ipifyClient.GetPublicIP)),
-			httpserver.WithPingHandlerFunc(jsendx.DefaultPingHandler(appInfo)),
+			httpserver.WithIndexHandlerFunc(jsx.DefaultIndexHandler(appInfo)),
+			httpserver.WithIPHandlerFunc(jsx.DefaultIPHandler(appInfo, ipifyClient.GetPublicIP)),
+			httpserver.WithPingHandlerFunc(jsx.DefaultPingHandler(appInfo)),
 			httpserver.WithStatusHandlerFunc(statusHandler),
 			httpserver.WithShutdownWaitGroup(wg),
 			httpserver.WithShutdownSignalChan(sc),
@@ -106,6 +112,7 @@ func bind(cfg *appConfig, appInfo *jsendx.AppInfo, mtr instr.Metrics, wg *sync.W
 
 		// start public server
 		httpPublicOpts := []httpserver.Option{
+			httpserver.WithLogger(l),
 			httpserver.WithServerAddr(cfg.Servers.Public.Address),
 			httpserver.WithRequestTimeout(time.Duration(cfg.Servers.Public.Timeout) * time.Second),
 			httpserver.WithMiddlewareFn(middleware),

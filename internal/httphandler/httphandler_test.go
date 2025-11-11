@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"github.com/tecnickcom/gogen/pkg/testutil"
 	"github.com/tecnickcom/rndpwd/internal/password"
 	"github.com/tecnickcom/rndpwd/internal/validator"
 )
@@ -15,7 +14,7 @@ import (
 func TestNew(t *testing.T) {
 	t.Parallel()
 
-	hh := New(nil, nil, nil, nil)
+	hh := New(nil, nil, nil, nil, nil)
 	require.NotNil(t, hh)
 }
 
@@ -23,7 +22,7 @@ func TestHTTPHandler_BindHTTP(t *testing.T) {
 	t.Parallel()
 
 	h := &HTTPHandler{}
-	got := h.BindHTTP(testutil.Context())
+	got := h.BindHTTP(t.Context())
 	require.Len(t, got, 2)
 }
 
@@ -31,9 +30,12 @@ func TestHTTPHandler_handleGenUID(t *testing.T) {
 	t.Parallel()
 
 	rr := httptest.NewRecorder()
-	req, _ := http.NewRequestWithContext(testutil.Context(), http.MethodGet, "/", nil)
+	req, _ := http.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 
-	(&HTTPHandler{}).handleGenUID(rr, req)
+	hh := New(nil, nil, nil, nil, nil)
+	require.NotNil(t, hh)
+
+	hh.handleGenUID(rr, req)
 
 	resp := rr.Result()
 	require.NotNil(t, resp)
@@ -56,6 +58,7 @@ func TestHTTPHandler_handlePassword(t *testing.T) {
 	val, _ := validator.New("json")
 
 	h := New(
+		nil,
 		nil,
 		nil,
 		val,
@@ -129,7 +132,7 @@ func TestHTTPHandler_handlePassword(t *testing.T) {
 			t.Parallel()
 
 			rr := httptest.NewRecorder()
-			req, _ := http.NewRequestWithContext(testutil.Context(), http.MethodGet, "/"+tt.params, nil)
+			req, _ := http.NewRequestWithContext(t.Context(), http.MethodGet, "/"+tt.params, nil)
 
 			h.handlePassword(rr, req)
 

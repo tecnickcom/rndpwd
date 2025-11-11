@@ -3,20 +3,24 @@ package cli
 
 import (
 	"fmt"
+	"log/slog"
 	"os"
 	"sync"
+	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/tecnickcom/gogen/pkg/bootstrap"
 	"github.com/tecnickcom/gogen/pkg/config"
 	"github.com/tecnickcom/gogen/pkg/httputil/jsendx"
-	"github.com/tecnickcom/gogen/pkg/logging"
+	"github.com/tecnickcom/gogen/pkg/logutil"
 	"github.com/tecnickcom/rndpwd/internal/metrics"
 )
 
 type bootstrapFunc func(bindFn bootstrap.BindFunc, opts ...bootstrap.Option) error
 
 // New creates an new CLI instance.
+//
+//nolint:gocognit
 func New(version, release string, bootstrapFn bootstrapFunc) (*cobra.Command, error) {
 	var (
 		argConfigDir string
@@ -29,6 +33,7 @@ func New(version, release string, bootstrapFn bootstrapFunc) (*cobra.Command, er
 		}
 	)
 
+	// command-line arguments
 	rootCmd.Flags().StringVarP(&argConfigDir, "configDir", "c", "", "Configuration directory to be added on top of the search list")
 	rootCmd.Flags().StringVarP(&argLogFormat, "logFormat", "f", "", "Logging format: CONSOLE, JSON")
 	rootCmd.Flags().StringVarP(&argLogLevel, "logLevel", "o", "", "Log level: EMERGENCY, ALERT, CRITICAL, ERROR, WARNING, NOTICE, INFO, DEBUG")
@@ -42,19 +47,38 @@ func New(version, release string, bootstrapFn bootstrapFunc) (*cobra.Command, er
 			return fmt.Errorf("failed loading config: %w", err)
 		}
 
+		// Configure logger
+
 		if argLogFormat != "" {
 			cfg.Log.Format = argLogFormat
+		}
+
+		logFormat, err := logutil.ParseFormat(cfg.Log.Format)
+		if err != nil {
+			return fmt.Errorf("log config error: %w", err)
 		}
 
 		if argLogLevel != "" {
 			cfg.Log.Level = argLogLevel
 		}
 
-		// Configure logger
-		l, err := logging.NewDefaultLogger(AppName, version, release, cfg.Log.Format, cfg.Log.Level)
+		logLevel, err := logutil.ParseLevel(cfg.Log.Level)
 		if err != nil {
-			return fmt.Errorf("failed configuring logger: %w", err)
+			return fmt.Errorf("log config error: %w", err)
 		}
+
+		logattr := []logutil.Attr{
+			slog.String("program", AppName),
+			slog.String("version", version),
+			slog.String("release", release),
+		}
+
+		logcfg, _ := logutil.NewConfig(
+			logutil.WithOutWriter(os.Stderr),
+			logutil.WithFormat(logFormat),
+			logutil.WithLevel(logLevel),
+			logutil.WithCommonAttr(logattr...),
+		)
 
 		appInfo := &jsendx.AppInfo{
 			ProgramName:    AppName,
@@ -62,7 +86,8 @@ func New(version, release string, bootstrapFn bootstrapFunc) (*cobra.Command, er
 			ProgramRelease: release,
 		}
 
-		// Confifure metrics
+		// Initialize metrics
+
 		mtr := metrics.New()
 
 		// Wait group used for graceful shutdown of all dependants (e.g.: servers).
@@ -74,8 +99,9 @@ func New(version, release string, bootstrapFn bootstrapFunc) (*cobra.Command, er
 		// Boostrap application
 		return bootstrapFn(
 			bind(cfg, appInfo, mtr, wg, sc),
-			bootstrap.WithLogger(l),
+			bootstrap.WithLogConfig(logcfg),
 			bootstrap.WithCreateMetricsClientFunc(mtr.CreateMetricsClientFunc),
+			bootstrap.WithShutdownTimeout(time.Duration(cfg.ShutdownTimeout)*time.Second),
 			bootstrap.WithShutdownWaitGroup(wg),
 			bootstrap.WithShutdownSignalChan(sc),
 		)
