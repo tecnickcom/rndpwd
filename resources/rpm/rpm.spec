@@ -41,6 +41,6 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_configpath}*
 
 %changelog
-* Fri Dec 04 2020 Nicola Asuni <info@tecnick.com> 1.0.0-1
+* Fri Dec 04 2026 Nicola Asuni <info@tecnick.com> 1.0.0-1
 - Initial Commit
 
