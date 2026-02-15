@@ -706,8 +706,8 @@ github.com/subosito/gotenv v1.6.0 h1:9NlTDc1FTs4qu0DDq7AEtTPNw6SVm7uBMsUCUjABIf8
 github.com/subosito/gotenv v1.6.0/go.mod h1:Dk4QP5c2W3ibzajGcXpNraDfq2IrhjMIvMSWPKKo0FU=
 github.com/tecnickcom/farmhash64 v1.9.61 h1:mZTMbb8WlNOWzXGxB1hr/Ldo/3H7bi1169f/pP9PZMc=
 github.com/tecnickcom/farmhash64 v1.9.61/go.mod h1:4vP6SgJh9Zl60T8jab7XvvFCYiSEF+x+WWtDmG81V4Y=
-github.com/tecnickcom/gogen v1.120.4 h1:GpgHgWMglTW6MX7Sp8CtdTZpAkL/zvIjuSWlO9dh6LA=
-github.com/tecnickcom/gogen v1.120.4/go.mod h1:S9M5nUIaN8Z+r7NJBYZHRWb9RnrIrwOsL+HbqyjCNc8=
+github.com/tecnickcom/gogen v1.122.0 h1:tWOqvk6x/nqwmn8LC1RmXifQMyRg/P2b31OUa+tC+1A=
+github.com/tecnickcom/gogen v1.122.0/go.mod h1:4xcNkTeqVH/Yfni2GIHpUn0JLxVeLVTMT7spU1Novno=
 github.com/tecnickcom/statsd v1.0.59 h1:il7p1AiC7yvSAt8PYj6MiMdMKo8DSQ+e+Q2ZBjbqJnE=
 github.com/tecnickcom/statsd v1.0.59/go.mod h1:w0ATrYSvY8HmXdwe6BmeQOlV1+noRAUq9pWLI6OGPo0=
 github.com/tv42/httpunix v0.0.0-20150427012821-b75d8614f926 h1:G3dpKMzFDjgEh2q1Z7zUUtKa8ViPtH+ocF0bE0g00O8=
