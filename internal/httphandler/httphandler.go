@@ -10,7 +10,7 @@ import (
 	"github.com/tecnickcom/gogen/pkg/httpserver"
 	"github.com/tecnickcom/gogen/pkg/httputil"
 	"github.com/tecnickcom/gogen/pkg/httputil/jsendx"
-	"github.com/tecnickcom/gogen/pkg/uidc"
+	"github.com/tecnickcom/gogen/pkg/random"
 	"github.com/tecnickcom/rndpwd/internal/metrics"
 	"github.com/tecnickcom/rndpwd/internal/password"
 	"github.com/tecnickcom/rndpwd/internal/validator"
@@ -26,6 +26,7 @@ type HTTPHandler struct {
 	metric  metrics.Metrics
 	val     validator.Validator
 	rndpwd  *password.Password
+	rnd     *random.Rnd
 }
 
 // New creates a new instance of the HTTP handler.
@@ -36,6 +37,7 @@ func New(l *slog.Logger, appInfo *jsendx.AppInfo, metric metrics.Metrics, val va
 		metric:  metric,
 		val:     val,
 		rndpwd:  rndpwd,
+		rnd:     random.New(nil),
 	}
 }
 
@@ -58,7 +60,7 @@ func (h *HTTPHandler) BindHTTP(_ context.Context) []httpserver.Route {
 }
 
 func (h *HTTPHandler) handleGenUID(w http.ResponseWriter, r *http.Request) {
-	h.httpres.SendJSON(r.Context(), w, http.StatusOK, uidc.NewID128())
+	h.httpres.SendJSON(r.Context(), w, http.StatusOK, h.rnd.UUIDv7().String())
 }
 
 func (h *HTTPHandler) handlePassword(w http.ResponseWriter, r *http.Request) {
