@@ -17,12 +17,37 @@ type Password struct {
 
 // New instantiate a new Password generator object.
 func New(charset string, length, quantity int) *Password {
+	// Duplicate characters would bias the output toward them, so the effective
+	// charset only keeps the first occurrence of each character.
+	charset = dedupCharset(charset)
+
 	return &Password{
 		Charset:  charset,
 		Length:   length,
 		Quantity: quantity,
 		rnd:      random.New(nil, random.WithByteToCharMap([]byte(charset))),
 	}
+}
+
+// dedupCharset removes duplicate bytes from the charset while preserving the
+// order of first appearance.
+func dedupCharset(charset string) string {
+	var seen [256]bool
+
+	out := make([]byte, 0, len(charset))
+
+	for i := range len(charset) {
+		c := charset[i]
+		if seen[c] {
+			continue
+		}
+
+		seen[c] = true
+
+		out = append(out, c)
+	}
+
+	return string(out)
 }
 
 // Generate returns the specified amount of random passwords.
