@@ -129,8 +129,33 @@ func TestHTTPHandler_handlePassword(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name:    "duplicate parameter",
+			name:    "unknown parameter",
 			params:  "?quantity=1&quatity=2",
+			wantErr: true,
+		},
+		{
+			name:    "duplicate quantity",
+			params:  "?quantity=1&quantity=2",
+			wantErr: true,
+		},
+		{
+			name:    "duplicate length",
+			params:  "?length=8&length=16",
+			wantErr: true,
+		},
+		{
+			name:    "negative length",
+			params:  "?length=-1",
+			wantErr: true,
+		},
+		{
+			name:    "zero quantity",
+			params:  "?quantity=0",
+			wantErr: true,
+		},
+		{
+			name:    "overflow length",
+			params:  "?length=99999999999999999999",
 			wantErr: true,
 		},
 	}
