@@ -1,7 +1,8 @@
-target
-vendor
-/Dockerfile
+.idea
 *.bak
 *.test
-.idea
+/Dockerfile
 golangci-lint
+PLAN_*
+target
+vendor
