@@ -1,6 +1,7 @@
 package httphandler
 
 import (
+	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -10,6 +11,13 @@ import (
 	"github.com/tecnickcom/rndpwd/internal/password"
 	"github.com/tecnickcom/rndpwd/internal/validator"
 )
+
+// errGenerator is a password generator stub that always fails.
+type errGenerator struct{}
+
+func (errGenerator) Generate() ([]string, error) {
+	return nil, errors.New("generator failure")
+}
 
 func TestNew(t *testing.T) {
 	t.Parallel()
@@ -155,4 +163,30 @@ func TestHTTPHandler_handlePassword(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestHTTPHandler_handlePassword_generateError(t *testing.T) {
+	t.Parallel()
+
+	val, _ := validator.New("json")
+
+	h := New(nil, nil, nil, val, password.New("0123456789abcdefghijklmnopqrstuvwxyz", 16, 3))
+	h.newPassword = func(_ string, _, _ int) generator {
+		return errGenerator{}
+	}
+
+	rr := httptest.NewRecorder()
+	req, _ := http.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
+
+	h.handlePassword(rr, req)
+
+	resp := rr.Result()
+	require.NotNil(t, resp)
+
+	defer func() {
+		err := resp.Body.Close()
+		require.NoError(t, err, "error closing resp.Body")
+	}()
+
+	require.Equal(t, http.StatusInternalServerError, resp.StatusCode)
 }

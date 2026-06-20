@@ -2,6 +2,8 @@
 package password
 
 import (
+	"fmt"
+
 	"github.com/tecnickcom/gogen/pkg/random"
 )
 
@@ -24,12 +26,17 @@ func New(charset string, length, quantity int) *Password {
 }
 
 // Generate returns the specified amount of random passwords.
-func (p *Password) Generate() []string {
+func (p *Password) Generate() ([]string, error) {
 	lst := make([]string, p.Quantity)
 
 	for i := range p.Quantity {
-		lst[i], _ = p.rnd.RandString(p.Length)
+		s, err := p.rnd.RandString(p.Length)
+		if err != nil {
+			return nil, fmt.Errorf("failed generating random password: %w", err)
+		}
+
+		lst[i] = s
 	}
 
-	return lst
+	return lst, nil
 }
