@@ -1,4 +1,4 @@
-openapi: 3.0.4
+openapi: 3.2.0
 info:
   title: rndpwd
   description: Monitoring API
@@ -9,7 +9,7 @@ info:
     url: https://github.com/tecnickcom/rndpwd/blob/main/LICENSE
   version: 1.0.0
 servers:
-  - url: https://rndpwd:8072/
+  - url: https://rndpwd:8072
 security:
   - {}
 tags:

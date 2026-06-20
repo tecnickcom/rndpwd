@@ -548,7 +548,7 @@ mod: gotools
 .PHONY: openapitest
 openapitest:
 	$(MAKE) schemathesistest API_TEST_URL=${RNDPWD_MONITORING_URL} OPENAPI_FILE=openapi_monitoring.yaml
-	$(MAKE) schemathesistest API_TEST_URL=${RNDPWD_URL} OPENAPI_FILE=openapi.yaml
+	$(MAKE) schemathesistest API_TEST_URL=${RNDPWD_URL} OPENAPI_FILE=openapi_public.yaml
 
 ## Ping the deployed service to check if the correct deployed container is alive
 .PHONY: ping
