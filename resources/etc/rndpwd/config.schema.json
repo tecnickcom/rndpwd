@@ -113,14 +113,15 @@
       "description": "Configuration of the random generator",
       "examples": [
         {
-          "address": "https://api.ipify.org",
-          "timeout": 5
+          "charset": "0123456789abcdefghijklmnopqrstuvwxyz",
+          "length": 32,
+          "quantity": 10
         }
       ],
       "properties": {
         "charset": {
-          "default": "!#$%&()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ^_abcdefghijklmnopqrstuvwxyz~",
-          "description": "String containing the valid characters for a password",
+          "default": "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~",
+          "description": "String containing the valid characters for a password. When this key is omitted the application default is the full printable ASCII set; the shipped configuration intentionally sets a smaller subset that omits quote and shell-sensitive characters.",
           "examples": [
             "0123456789abcdefghijklmnopqrstuvwxyz"
           ],
