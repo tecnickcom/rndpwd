@@ -18,7 +18,7 @@ import (
 
 type bootstrapFunc func(bindFn bootstrap.BindFunc, opts ...bootstrap.Option) error
 
-// New creates an new CLI instance.
+// New creates a new CLI instance.
 //
 //nolint:gocognit
 func New(version, release string, bootstrapFn bootstrapFunc) (*cobra.Command, error) {
@@ -96,7 +96,7 @@ func New(version, release string, bootstrapFn bootstrapFunc) (*cobra.Command, er
 		// Channel used to signal the shutdown process to all dependants.
 		sc := make(chan struct{})
 
-		// Boostrap application
+		// Bootstrap application
 		return bootstrapFn(
 			bind(cfg, appInfo, mtr, wg, sc),
 			bootstrap.WithLogConfig(logcfg),
@@ -120,7 +120,7 @@ func New(version, release string, bootstrapFn bootstrapFunc) (*cobra.Command, er
 
 	err := rootCmd.ParseFlags(os.Args)
 	if err != nil {
-		return nil, fmt.Errorf("failed parsing comman-line arguments: %w", err)
+		return nil, fmt.Errorf("failed parsing command-line arguments: %w", err)
 	}
 
 	return rootCmd, nil

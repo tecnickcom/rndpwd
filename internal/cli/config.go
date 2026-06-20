@@ -16,7 +16,8 @@ const (
 	appShortDesc = "Web-Service Random Password Generator"
 
 	// appLongDesc is the long description of the application.
-	appLongDesc = "Web-Service Random Password Generator"
+	appLongDesc = "Web-Service Random Password Generator.\n\n" +
+		"rndpwd exposes HTTP endpoints to generate cryptographically secure random passwords and UIDs."
 
 	// fieldTagName is the name of the tag containing the original JSON field name.
 	fieldTagName = "mapstructure"
