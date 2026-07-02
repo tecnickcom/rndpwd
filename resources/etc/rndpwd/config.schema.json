@@ -27,7 +27,7 @@
               "type": "string"
             },
             "timeout": {
-              "default": 15,
+              "default": 1,
               "description": "HTTP client timeout [seconds]",
               "examples": [
                 15
@@ -102,6 +102,7 @@
       },
       "required": [
         "address",
+        "format",
         "level",
         "network"
       ],

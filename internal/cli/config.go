@@ -23,6 +23,9 @@ const (
 	fieldTagName = "mapstructure"
 )
 
+// validatorNewFn defines the validator constructor and can be overwritten for testing.
+var validatorNewFn = validator.New //nolint:gochecknoglobals
+
 type cfgServer struct {
 	Address string `mapstructure:"address" validate:"required,hostname_port"`
 	Timeout int    `mapstructure:"timeout" validate:"required,min=1"`
@@ -85,7 +88,10 @@ func (c *appConfig) SetDefaults(v config.Viper) {
 
 // Validate performs the validation of the configuration values.
 func (c *appConfig) Validate() error {
-	v, _ := validator.New(fieldTagName)
+	v, err := validatorNewFn(fieldTagName)
+	if err != nil {
+		return err
+	}
 
 	return v.ValidateStruct(c) //nolint:wrapcheck
 }

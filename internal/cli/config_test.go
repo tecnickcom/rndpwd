@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/spf13/viper"
@@ -54,6 +55,26 @@ func getValidTestConfig() appConfig {
 			Quantity: 3,
 		},
 	}
+}
+
+// Test_appConfig_Validate_validatorError covers the validator constructor
+// error branch; it mutates the package-level validatorNewFn, so it must not
+// run in parallel with the other Validate tests.
+//
+//nolint:paralleltest
+func Test_appConfig_Validate_validatorError(t *testing.T) {
+	oldValidatorNewFn := validatorNewFn
+
+	defer func() { validatorNewFn = oldValidatorNewFn }()
+
+	validatorNewFn = func(_ string) (validator.Validator, error) {
+		return nil, errors.New("TEST VALIDATOR ERROR")
+	}
+
+	cfg := getValidTestConfig()
+
+	err := cfg.Validate()
+	require.Error(t, err, "an error from the validator constructor was expected")
 }
 
 func Test_appConfig_Validate(t *testing.T) {
