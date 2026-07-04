@@ -15,18 +15,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: setup go build environment
         uses: actions/setup-go@v6
         with:
           go-version-file: 'go.mod'
           check-latest: true
-      - name: dependency cache
-        uses: actions/cache@v5
-        with:
-          path: $(go env GOPATH)/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: ${{ runner.os }}-go-
+          cache: true
       - name: linter
         run: make mod deps linter GOPATH=$(go env GOPATH)
 
@@ -34,18 +29,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: setup go build environment
         uses: actions/setup-go@v6
         with:
           go-version-file: 'go.mod'
           check-latest: true
-      - name: dependency cache
-        uses: actions/cache@v5
-        with:
-          path: $(go env GOPATH)/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: ${{ runner.os }}-go-
+          cache: true
       - name: unit tests
         run: make mod deps confcheck test GOPATH=$(go env GOPATH)
       - name: coverage report
@@ -59,18 +49,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: setup go build environment
         uses: actions/setup-go@v6
         with:
           go-version-file: 'go.mod'
           check-latest: true
-      - name: dependency cache
-        uses: actions/cache@v5
-        with:
-          path: $(go env GOPATH)/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: ${{ runner.os }}-go-
+          cache: true
       - name: set RELEASE number
         run: echo ${GITHUB_RUN_NUMBER} > RELEASE
       - name: integration tests
