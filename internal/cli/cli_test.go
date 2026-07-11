@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"github.com/tecnickcom/gogen/pkg/bootstrap"
-	"github.com/tecnickcom/gogen/pkg/testutil"
+	"github.com/tecnickcom/nurago/pkg/bootstrap"
+	"github.com/tecnickcom/nurago/pkg/testutil"
 )
 
 //nolint:gocognit,paralleltest,tparallel

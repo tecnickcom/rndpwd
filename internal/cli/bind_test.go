@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"github.com/tecnickcom/gogen/pkg/bootstrap"
-	"github.com/tecnickcom/gogen/pkg/httputil/jsendx"
+	"github.com/tecnickcom/nurago/pkg/bootstrap"
+	"github.com/tecnickcom/nurago/pkg/httputil/jsendx"
 	"github.com/tecnickcom/rndpwd/internal/metrics"
 )
 

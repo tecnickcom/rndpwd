@@ -7,7 +7,7 @@ import (
 	"testing"
 	"testing/iotest"
 
-	"github.com/tecnickcom/gogen/pkg/random"
+	"github.com/tecnickcom/nurago/pkg/random"
 	"github.com/tecnickcom/rndpwd/internal/validator"
 )
 

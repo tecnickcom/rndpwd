@@ -4,7 +4,7 @@ package password
 import (
 	"fmt"
 
-	"github.com/tecnickcom/gogen/pkg/random"
+	"github.com/tecnickcom/nurago/pkg/random"
 )
 
 // Password contains the random generator configuration.

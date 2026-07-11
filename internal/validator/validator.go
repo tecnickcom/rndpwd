@@ -6,7 +6,7 @@ import (
 	"regexp"
 
 	vt "github.com/go-playground/validator/v10"
-	val "github.com/tecnickcom/gogen/pkg/validator"
+	val "github.com/tecnickcom/nurago/pkg/validator"
 )
 
 const (

@@ -5,9 +5,9 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/tecnickcom/gogen/pkg/bootstrap"
-	"github.com/tecnickcom/gogen/pkg/logsrv"
-	"github.com/tecnickcom/gogen/pkg/logutil"
+	"github.com/tecnickcom/nurago/pkg/bootstrap"
+	"github.com/tecnickcom/nurago/pkg/logsrv"
+	"github.com/tecnickcom/nurago/pkg/logutil"
 	"github.com/tecnickcom/rndpwd/internal/cli"
 )
 
