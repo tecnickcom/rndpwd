@@ -22,12 +22,12 @@ Web-Service Random Password Generator
 #(cd %{_current_directory} && make build)
 
 %install
-rm -rf $RPM_BUILD_ROOT
-(cd %{_current_directory} && make install DESTDIR=$RPM_BUILD_ROOT)
-rm -f $RPM_BUILD_ROOT/etc/passwd
+rm -rf "$RPM_BUILD_ROOT"
+(cd "%{_current_directory}" && make install DESTDIR="$RPM_BUILD_ROOT")
+rm -f "$RPM_BUILD_ROOT/etc/passwd"
 
 %clean
-rm -rf $RPM_BUILD_ROOT
+rm -rf "$RPM_BUILD_ROOT"
 
 %files
 %attr(0755,root,root) %{_binpath}/%{_project}
