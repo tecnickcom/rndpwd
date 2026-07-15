@@ -16,6 +16,7 @@ import (
 	"github.com/tecnickcom/nurago/pkg/httputil/jsendx"
 	"github.com/tecnickcom/nurago/pkg/ipify"
 	"github.com/tecnickcom/nurago/pkg/metrics"
+	"github.com/tecnickcom/nurago/pkg/redact"
 	"github.com/tecnickcom/nurago/pkg/traceid"
 	"github.com/tecnickcom/rndpwd/internal/httphandler"
 	instr "github.com/tecnickcom/rndpwd/internal/metrics"
@@ -31,6 +32,10 @@ func bind(cfg *appConfig, appInfo *jsendx.AppInfo, mtr instr.Metrics, wg *sync.W
 	return func(ctx context.Context, l *slog.Logger, m metrics.Client) error {
 		jsx := jsendx.NewJSXResp(httputil.NewHTTPResp(l))
 
+		// Sanitizes the HTTP dumps, query strings, and error URLs before they are
+		// logged. One instance is shared by every client and server below.
+		logRedactor := newLogRedactor()
+
 		// Common outbound HTTP client options shared by every external client
 		// (structured logging, trace propagation, and metrics instrumentation).
 		// This base is built once and reused: each client constructor appends its
@@ -40,6 +45,7 @@ func bind(cfg *appConfig, appInfo *jsendx.AppInfo, mtr instr.Metrics, wg *sync.W
 			httpclient.WithRoundTripper(m.InstrumentRoundTripper),
 			httpclient.WithTraceIDHeaderName(traceid.DefaultHeader),
 			httpclient.WithComponent(appInfo.ProgramName),
+			httpclient.WithRedactFn(logRedactor.BytesToString),
 		}
 
 		// ipify is used only as a diagnostic (the monitoring /ip route); it is
@@ -71,6 +77,7 @@ func bind(cfg *appConfig, appInfo *jsendx.AppInfo, mtr instr.Metrics, wg *sync.W
 			httpserver.WithIPHandlerFunc(jsx.DefaultIPHandler(appInfo, ipifyClient.GetPublicIP)),
 			httpserver.WithPingHandlerFunc(jsx.DefaultPingHandler(appInfo)),
 			httpserver.WithStatusHandlerFunc(statusHandler),
+			httpserver.WithRedactFn(logRedactor.BytesToString),
 			httpserver.WithShutdownWaitGroup(wg),
 			httpserver.WithShutdownSignalChan(sc),
 		}
@@ -91,6 +98,7 @@ func bind(cfg *appConfig, appInfo *jsendx.AppInfo, mtr instr.Metrics, wg *sync.W
 			httpserver.WithMiddlewareFn(middleware),
 			httpserver.WithTraceIDHeaderName(traceid.DefaultHeader),
 			httpserver.WithEnableDefaultRoutes(httpserver.PingRoute),
+			httpserver.WithRedactFn(logRedactor.BytesToString),
 			httpserver.WithShutdownWaitGroup(wg),
 			httpserver.WithShutdownSignalChan(sc),
 		}
@@ -105,6 +113,41 @@ func bind(cfg *appConfig, appInfo *jsendx.AppInfo, mtr instr.Metrics, wg *sync.W
 
 		return nil
 	}
+}
+
+// newLogRedactor builds the redactor applied to the HTTP request and response
+// dumps, query strings, and error URLs written to the logs.
+//
+// Every rule class is disabled here, so the redactor passes its input through
+// unchanged: this service's logs are NOT sanitized. This departs from the
+// library default: httpclient, httpserver, and httpreverseproxy redact with the
+// package-level default redactor ([redact.HTTPDataString], all rules on) when the
+// WithRedactFn option is omitted. Anything sensitive that reaches a logged dump,
+// query string, or error URL is therefore logged verbatim.
+//
+// Re-enable a rule class by removing it from the list below. The other knobs are
+// [redact.WithMarker] (replace the `***` placeholder), [redact.WithExtraTokens]
+// and [redact.WithoutTokens] (adjust the sensitive key names), and
+// [redact.WithLuhnCheck] (gate card detection on the Luhn checksum). Deleting
+// this function and the WithRedactFn options that reference it restores the
+// fully redacting default.
+//
+// A [redact.Redactor] is immutable after construction and safe for concurrent
+// use, so a single instance is shared by every client and server.
+func newLogRedactor() *redact.Redactor {
+	return redact.New(
+		redact.WithoutRules(
+			redact.RuleHeaders,
+			redact.RuleJSON,
+			redact.RuleURLEncoded,
+			redact.RuleXML,
+			redact.RuleUserinfo,
+			redact.RuleJWT,
+			redact.RuleVendorTokens,
+			redact.RulePEM,
+			redact.RuleCards,
+		),
+	)
 }
 
 // newIpifyClient builds the ipify client used by the monitoring server's /ip
